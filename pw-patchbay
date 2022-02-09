@@ -1,0 +1,107 @@
+#!/bin/bash
+# Monitors all audio devices (input and output) and links them according to config file"
+
+CONFIG_FOLDER="$XDG_CONFIG_HOME"
+CONFIG_FILE="$CONFIG_FOLDER/pw-patchbay.json"
+
+GET_KEYS=".links | keys[]"
+GET_PRINT_LINKS="try .print_links catch \"false\""
+GET_DEBUG="try .debug catch \"false\""
+GET_VALUE() {
+    echo ".links.\"$1\""
+}
+
+INPUTS=( )
+OUTPUTS=( )
+
+if [[ ! -f "$CONFIG_FILE" ]] ; then
+    echo "Config file missing at $CONFIG_FILE, creating a default config"
+    mkdir -p $CONFIG_FOLDER && echo "{\"links\": {}}" | jq "." > $CONFIG_FILE
+fi
+
+# $1 = "+" / "-" / "="
+# $2 = device name
+# $3 = "input" / "output"
+event() {
+    # Init variables
+    from=$1
+    method=$2
+    id=$3
+    device=$4
+
+    # Find correct list
+    case $from in
+        i) LIST=( "${INPUTS[@]}" );;
+        o) LIST=( "${OUTPUTS[@]}" ) ;;
+        *) echo "Invalid from-parameter '$from'!" && exit 1;;
+    esac
+
+    # Manage said list
+    case $method in
+        +|=) LIST+=( "$id ${device}" ) ;;
+        -) LIST=( "${LIST[@]/"$id $device"/}" ) ;;
+        *) echo "Invalid method-parameter '$method'" && exit 1;;
+    esac
+
+    NEW_LIST=( )
+    for item in "${LIST[@]}" ; do
+        [[ ! -z $item ]] && NEW_LIST+=( "$item" )
+    done
+
+    # Save said list
+    case $from in
+        i) INPUTS=( "${NEW_LIST[@]}" ) ;;
+        o) OUTPUTS=( "${NEW_LIST[@]}" ) ;;
+        *) echo "Received non-input-or-output!" && exit 1;;
+    esac
+
+    CONFIG=$(cat "$CONFIG_FILE")
+    DEBUG=$(jq "$GET_DEBUG" <<< "$CONFIG")
+    PRINT_LINKS=$(jq "$GET_PRINT_LINKS" <<< "$CONFIG")
+
+    if [[ "$DEBUG" = "true" ]] ; then
+        echo $method $id $device
+    fi
+
+    jq "$GET_KEYS" <<< "$CONFIG" | while read key ; do
+        key=$(echo $key | tail -c +2 | head -c -2)
+        args=( "$(GET_VALUE "$key")" )
+        value=$(jq "${args[@]}" <<< "$CONFIG" | tail -c +2 | head -c -2)
+
+        output=""
+        input=""
+
+        if [[ "$from" = "i" ]] ; then
+            rg -q "$value" <<< $device && input=$id
+            for o in "${OUTPUTS[@]}" ; do
+                rg -q "$key" <<< "$o" && output=$(echo "$o" | cut -d' ' -f1)
+            done
+        else
+            rg -q "$key" <<< $device && output=$id
+            for i in "${INPUTS[@]}" ; do
+                rg -q "$value" <<< "$i" && input=$(echo "$i" | cut -d' ' -f1)
+            done
+        fi
+
+        if [[ ! -z "$output" ]] && [[ ! -z "$input" ]] ; then
+            [[ "$PRINT_LINKS" = "true" ]] && echo "linking $key ($output) to $value ($input)"
+            pw-link "$output" "$input" &> /dev/null
+        fi
+
+    done
+}
+
+readpwlink() {
+    stdbuf -oL pw-link "$1" | while read line; do
+        echo $2 $line
+    done &
+}
+
+{ readpwlink "-miI" "i" && readpwlink "-moI" "o"; } | while read line ; do
+    beginning=$(echo $line | head -c 7 | tr -s ' ')
+    from=$(echo "$beginning" | cut -d' ' -f1)
+    method=$(echo "$beginning" | cut -d' ' -f2)
+    id=$(echo "$beginning" | cut -d' ' -f3)
+    device=$(echo $line | tail -c +8)
+    event "$from" "$method" "$id" "$device"
+done
