@@ -2,7 +2,7 @@
 # Monitors all audio devices (input and output) and links them according to config file"
 
 CONFIG_FOLDER="$XDG_CONFIG_HOME"
-CONFIG_FILE="$CONFIG_FOLDER/pw-patchbay.json"
+CONFIG_FILE="$CONFIG_FOLDER/pipeswitch.json"
 
 GET_KEYS=".links | keys[]"
 GET_PRINT_LINKS="try .print_links catch \"false\""

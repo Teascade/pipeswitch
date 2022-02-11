@@ -1,5 +1,5 @@
-# PipeWire-patchbay
-Daemon for [PipeWire][pipewire] that automatically links audio inputs and outputs
+# Pipeswitch
+Daemon for [PipeWire](pipewire) that automatically links audio inputs and outputs
 based on regex for similarly to how [QjackCtl][qjackctl]'s patchbay works on
 Jack.
 
@@ -22,12 +22,12 @@ rust with a GUI to manage the configuration file.
 
 ## Config
 Configuration is done with a `json` file that is located at
-`$XDG_CONFIG_HOME/pw-patchbay.json`
+`$XDG_CONFIG_HOME/pipeswitch.json`
 
 The format is following:
 ```json
 {
-    "print_links": true, // Prints the links that pw-patchbay does
+    "print_links": true, // Prints the links that pipeswitch does
     "debug": false,      // Prints debug information. Currently just all device events
     "links": {
         // key:value pairs of the links you want.
