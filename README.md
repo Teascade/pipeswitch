@@ -1,5 +1,5 @@
 # Pipeswitch
-Daemon for [PipeWire](pipewire) that automatically links audio inputs and outputs
+Daemon for [PipeWire][pipewire] that automatically links audio inputs and outputs
 based on regex for similarly to how [QjackCtl][qjackctl]'s patchbay works on
 Jack.
 
