@@ -1,8 +1,0 @@
-{
-    "print_links": true,
-    "debug": false,
-    "links": {
-        "ExampleFLRegex": "Some Headphones:in_1",
-        "ExampleFRRegex": "Some Headphones:in_2"
-    }
-}
