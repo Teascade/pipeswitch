@@ -1,0 +1,84 @@
+{
+    "826": {
+        "object.serial": "2329",
+        "object.path": "spotify:output_0",
+        "format.dsp": "32 bit float mono audio",
+        "node.id": "817",
+        "audio.channel": "FL",
+        "port.id": "0",
+        "port.name": "output_FL",
+        "port.direction": "out",
+        "port.alias": "spotify:output_FL"
+    },
+    "819": {
+        "object.serial": "2330",
+        "object.path": "spotify:output_1",
+        "format.dsp": "32 bit float mono audio",
+        "node.id": "817",
+        "audio.channel": "FR",
+        "port.id": "1",
+        "port.name": "output_FR",
+        "port.direction": "out",
+        "port.alias": "spotify:output_FR"
+    },
+    "44": {
+        "object.serial": "254",
+        "object.path": "alsa:pcm:5:front:5:playback:playback_0",
+        "format.dsp": "32 bit float mono audio",
+        "node.id": "70",
+        "audio.channel": "FL",
+        "port.id": "0",
+        "port.name": "playback_FL",
+        "port.direction": "in",
+        "port.physical": "true",
+        "port.terminal": "true",
+        "port.alias": "Ti USB Audio:playback_FL"
+    },
+    "82": {
+        "object.serial": "256",
+        "object.path": "alsa:pcm:5:front:5:playback:playback_1",
+        "format.dsp": "32 bit float mono audio",
+        "node.id": "70",
+        "audio.channel": "FR",
+        "port.id": "1",
+        "port.name": "playback_FR",
+        "port.direction": "in",
+        "port.physical": "true",
+        "port.terminal": "true",
+        "port.alias": "Ti USB Audio:playback_FR"
+    },
+    "79": {
+        "object.serial": "255",
+        "object.path": "alsa:pcm:5:front:5:playback:monitor_0",
+        "format.dsp": "32 bit float mono audio",
+        "node.id": "70",
+        "audio.channel": "FL",
+        "port.id": "0",
+        "port.name": "monitor_FL",
+        "port.direction": "out",
+        "port.monitor": "true",
+        "port.alias": "Ti USB Audio:monitor_FL"
+    },
+    "78": {
+        "object.serial": "257",
+        "object.path": "alsa:pcm:5:front:5:playback:monitor_1",
+        "format.dsp": "32 bit float mono audio",
+        "node.id": "70",
+        "audio.channel": "FR",
+        "port.id": "1",
+        "port.name": "monitor_FR",
+        "port.direction": "out",
+        "port.monitor": "true",
+        "port.alias": "Ti USB Audio:monitor_FR"
+    },
+    "641": {
+        "object.serial": "2764",
+        "node.id": "731",
+        "port.id": "0",
+        "port.name": "out_0",
+        "port.direction": "out",
+        "port.physical": "true",
+        "port.terminal": "true",
+        "port.alias": "HTC Vive:out_0"
+    }
+}

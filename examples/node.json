@@ -1,0 +1,24 @@
+{
+    "70": {
+        "object.serial": "253",
+        "object.path": "alsa:pcm:5:front:5:playback",
+        "factory.id": "18",
+        "client.id": "34",
+        "device.id": "114",
+        "priority.session": "1009",
+        "priority.driver": "1009",
+        "node.description": "Ti USB Audio  Analog Stereo",
+        "node.name": "alsa_output.usb-Texas_Instruments_Ti_USB_Audio-00.analog-stereo",
+        "node.nick": "Ti USB Audio",
+        "media.class": "Audio/Sink"
+    },
+    "817": {
+        "object.serial": "2328",
+        "factory.id": "6",
+        "client.id": "621",
+        "application.name": "spotify",
+        "node.name": "spotify",
+        "media.class": "Stream/Output/Audio",
+        "media.role": "Music"
+    }
+}

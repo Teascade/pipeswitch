@@ -1,0 +1,12 @@
+{
+    "114": {
+        "object.serial": "252",
+        "factory.id": "14",
+        "client.id": "34",
+        "device.api": "alsa",
+        "device.description": "Ti USB Audio ",
+        "device.name": "alsa_card.usb-Texas_Instruments_Ti_USB_Audio-00",
+        "device.nick": "Ti USB Audio",
+        "media.class": "Audio/Device"
+    }
+}

@@ -1,0 +1,20 @@
+[package]
+name = "pipeswitch-lib"
+description = "Core library for the Pipeswitch GUI and Daemon"
+authors = ["Sofia <sofia@teascade.net>"]
+version = "0.1.0"
+license = "GPL-3.0-or-later"
+readme = "../README.md"
+repository = "https://github.com/Teascade/pipeswitch"
+documentation = "https://docs.rs/pipeswitch-lib"
+
+edition = "2021"
+rust-version = "1.62"
+
+keywords = ["multimedia", "audio", "linux", "pipewire", "api"]
+categories = ["multimedia::audio", "config"]
+
+[dependencies]
+pipewire = "0.5"
+tokio = { version = "1", features = ["full"] }
+thiserror = "1.0.37"

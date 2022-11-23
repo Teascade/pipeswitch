@@ -1,0 +1,19 @@
+[package]
+name = "pipeswitchd"
+description = "Daemon for Pipeswitch"
+authors = ["Sofia <sofia@teascade.net>"]
+version = "0.1.0"
+license = "GPL-3.0-or-later"
+readme = "../README.md"
+repository = "https://github.com/Teascade/pipeswitch"
+documentation = "https://docs.rs/pipeswitchd"
+
+edition = "2021"
+rust-version = "1.62"
+
+keywords = ["multimedia", "audio", "linux", "pipewire", "utility"]
+categories = ["multimedia::audio", "command-line-utilities"]
+
+[dependencies]
+pipeswitch-lib = { path = "../pipeswitch-lib" }
+sdl2 = "0.35.2"

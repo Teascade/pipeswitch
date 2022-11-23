@@ -1,0 +1,9 @@
+{
+    "20": {
+        "object.serial": "20",
+        "module.id": "19",
+        "factory.name": "link-factory",
+        "factory.type.name": "PipeWire:Interface:Link",
+        "factory.type.version": "3"
+    }
+}
