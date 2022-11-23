@@ -1,10 +1,7 @@
 use std::{
     num::ParseIntError,
     str::ParseBoolError,
-    sync::{
-        mpsc::{self, Receiver, Sender},
-        Arc, Mutex,
-    },
+    sync::{mpsc::Sender, Arc, Mutex},
     thread::JoinHandle,
 };
 
@@ -40,22 +37,22 @@ pub enum PipeswitchError {
     Unknown,
 }
 
+// TODO: Re-evaluate bit-depth?
+type PipewireNum = u32;
+
 #[derive(Debug)]
-struct Port {
-    // TODO: Re-evaluate bit-depth?
-    id: u32,
-    // TODO: Re-evaluate bit-depth?
-    port_id: u32,
-    path: Option<String>,
-    // TODO: Re-evaluate bit-depth?
-    node_id: u32,
-    dsp: Option<String>,
-    channel: Option<String>,
-    name: String,
-    direction: String,
-    alias: String,
-    physical: Option<bool>,
-    terminal: Option<bool>,
+pub struct Port {
+    pub id: PipewireNum,
+    pub port_id: PipewireNum,
+    pub path: Option<String>,
+    pub node_id: PipewireNum,
+    pub dsp: Option<String>,
+    pub channel: Option<String>,
+    pub name: String,
+    pub direction: String,
+    pub alias: String,
+    pub physical: Option<bool>,
+    pub terminal: Option<bool>,
 }
 
 impl Port {
@@ -101,7 +98,7 @@ enum PipewireMessage {
 }
 
 fn mainloop(
-    sender: Option<Sender<()>>,
+    _: Option<Sender<()>>,
     receiver: PipewireReceiver<Terminate>,
     state: Arc<Mutex<PipewireState>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -121,7 +118,6 @@ fn mainloop(
     let _listener = registry
         .add_listener_local()
         .global({
-            let s = sender.clone();
             let state = state.clone();
             move |global| match PipewireObject::from_global(global) {
                 Ok(Some(obj)) => {
