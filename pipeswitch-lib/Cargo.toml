@@ -16,5 +16,4 @@ categories = ["multimedia::audio", "config"]
 
 [dependencies]
 pipewire = "0.5"
-tokio = { version = "1", features = ["full"] }
 thiserror = "1.0.37"

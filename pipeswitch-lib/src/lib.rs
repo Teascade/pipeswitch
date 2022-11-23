@@ -1,11 +1,15 @@
 use std::{
     num::ParseIntError,
     str::ParseBoolError,
-    sync::mpsc::{self, Sender},
+    sync::{
+        mpsc::{self, Receiver, Sender},
+        Arc, Mutex,
+    },
+    thread::JoinHandle,
 };
 
 use pipewire::{
-    channel::Receiver,
+    channel::{Receiver as PipewireReceiver, Sender as PipewireSender},
     keys::*,
     registry::GlobalObject,
     spa::{ForeignDict, ReadableDict},
@@ -14,23 +18,10 @@ use pipewire::{
 };
 
 use thiserror::Error;
-pub use tokio;
 
 struct Terminate;
 
 const VERSION: u32 = 3;
-
-// const PORT_PATH: &str = "object.path"; // Firefox:output_0 / Firefox:output_1
-// const PORT_SERIAL: &str = "object.serial"; // 2252 / 2253
-// const PORT_ID: &str = "port.id"; // 0 / 1
-// const PORT_DSP: &str = "format.dsp"; // 0 / 1
-// const PORT_NAME: &str = "port.name"; // output_FL / output_FR
-// const PORT_DIRECTION: &str = "port.direction"; // out
-// const PORT_ALIAS: &str = "port.alias"; // Firefox:output_FL / Firefox:output_FR
-// const NODE_ID: &str = "node.id"; // 788
-// const AUDIO_CHANNEL: &str = "audio.channel";
-// const PORT_PHYSICAL: &str = "port.physical";
-// const PORT_TERMINAL: &str = "port.terminal";
 
 #[derive(Error, Debug)]
 pub enum PipeswitchError {
@@ -44,6 +35,9 @@ pub enum PipeswitchError {
     InvalidVersion(u32),
     #[error("GlobalObject does not have properties")]
     MissingProps,
+    #[cfg(debug_assertions)]
+    #[error("unknown error")]
+    Unknown,
 }
 
 #[derive(Debug)]
@@ -107,8 +101,9 @@ enum PipewireMessage {
 }
 
 fn mainloop(
-    sender: Sender<PipewireMessage>,
-    receiver: Receiver<Terminate>,
+    sender: Option<Sender<()>>,
+    receiver: PipewireReceiver<Terminate>,
+    state: Arc<Mutex<PipewireState>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mainloop = MainLoop::new()?;
     let context = Context::new(&mainloop)?;
@@ -127,40 +122,35 @@ fn mainloop(
         .add_listener_local()
         .global({
             let s = sender.clone();
+            let state = state.clone();
             move |global| match PipewireObject::from_global(global) {
                 Ok(Some(obj)) => {
-                    s.send(PipewireMessage::NewGlobal(global.id, obj)).unwrap();
+                    state
+                        .lock()
+                        .unwrap()
+                        .process_message(PipewireMessage::NewGlobal(global.id, obj));
                 }
                 Err(e) => println!("{e} {global:?}"),
                 _ => {}
             }
         })
         .global_remove(move |global_id| {
-            sender
-                .send(PipewireMessage::GlobalRemoved(global_id))
-                .unwrap();
+            state
+                .lock()
+                .unwrap()
+                .process_message(PipewireMessage::GlobalRemoved(global_id));
         })
         .register();
-
-    // Calling the `destroy_global` method on the registry will destroy the object with the specified id on the remote.
-    // We don't have a specific object to destroy now, so this is commented out.
-    // registry.destroy_global(313).into_result()?;
 
     mainloop.run();
 
     Ok(())
 }
 
-pub fn create_mainloop() -> Result<(), String> {
-    // This is running on a core thread.
+struct PipewireState {}
 
-    let (main_sender, main_receiver) = mpsc::channel();
-    let (pw_sender, pw_receiver) = pipewire::channel::channel();
-
-    std::thread::spawn(move || mainloop(main_sender, pw_receiver).unwrap());
-
-    loop {
-        let message = main_receiver.recv().unwrap();
+impl PipewireState {
+    fn process_message(&mut self, message: PipewireMessage) {
         match message {
             PipewireMessage::NewGlobal(id, PipewireObject::Port(port)) => {
                 println!("+ Port {id} {port:?}")
@@ -168,6 +158,42 @@ pub fn create_mainloop() -> Result<(), String> {
             PipewireMessage::GlobalRemoved(id) => {
                 println!("- Something {id}")
             }
+        }
+    }
+}
+
+pub struct Pipeswitch {
+    pipewire_state: Arc<Mutex<PipewireState>>,
+    sender: PipewireSender<Terminate>,
+    join_handle: Option<JoinHandle<()>>,
+}
+
+impl Pipeswitch {
+    pub fn new(sender: Option<Sender<()>>) -> Result<Self, PipeswitchError> {
+        let pipewire_state = Arc::new(Mutex::new(PipewireState {}));
+
+        let (pw_sender, pw_receiver) = pipewire::channel::channel::<Terminate>();
+
+        let state_clone = pipewire_state.clone();
+
+        let join_handle =
+            std::thread::spawn(move || mainloop(sender, pw_receiver, state_clone.clone()).unwrap());
+
+        Ok(Pipeswitch {
+            pipewire_state,
+            sender: pw_sender,
+            join_handle: Some(join_handle),
+        })
+    }
+
+    pub fn shutdown(self) {}
+}
+
+impl Drop for Pipeswitch {
+    fn drop(&mut self) {
+        let _ = self.sender.send(Terminate);
+        if let Some(handle) = self.join_handle.take() {
+            handle.join().unwrap()
         }
     }
 }
