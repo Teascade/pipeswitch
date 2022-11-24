@@ -92,9 +92,79 @@ impl Node {
     }
 }
 
+#[derive(Debug)]
+pub struct Link {
+    pub id: PwIdType,
+    pub factory_id: PwIdType,
+    pub client_id: PwIdType,
+    pub output_node: PwIdType,
+    pub output_port: PwIdType,
+    pub input_node: PwIdType,
+    pub input_port: PwIdType,
+}
+
+impl Link {
+    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
+        let props = global
+            .props
+            .as_ref()
+            .ok_or(PipewireError::MissingProps(global.id))?;
+        let get_prop = |property| props.get(property).map(|v| v.to_string());
+        let get_prop_or =
+            |property| get_prop(property).ok_or(PipewireError::PropNotFound("Node", property));
+
+        Ok(Link {
+            id: global.id,
+            factory_id: get_prop_or(*FACTORY_ID)?.parse()?,
+            client_id: get_prop_or(*CLIENT_ID)?.parse()?,
+            output_node: get_prop_or(*LINK_OUTPUT_NODE)?.parse()?,
+            output_port: get_prop_or(*LINK_OUTPUT_PORT)?.parse()?,
+            input_node: get_prop_or(*LINK_INPUT_NODE)?.parse()?,
+            input_port: get_prop_or(*LINK_INPUT_PORT)?.parse()?,
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct Client {
+    pub id: PwIdType,
+    pub module_id: PwIdType,
+    pub protocol: String,
+    pub pid: PwIdType,
+    pub uid: PwIdType,
+    pub gid: PwIdType,
+    pub label: String,
+    pub application_name: String,
+}
+
+impl Client {
+    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
+        let props = global
+            .props
+            .as_ref()
+            .ok_or(PipewireError::MissingProps(global.id))?;
+        let get_prop = |property| props.get(property).map(|v| v.to_string());
+        let get_prop_or =
+            |property| get_prop(property).ok_or(PipewireError::PropNotFound("Node", property));
+
+        Ok(Client {
+            id: global.id,
+            module_id: get_prop_or(*MODULE_ID)?.parse()?,
+            protocol: get_prop_or(*PROTOCOL)?,
+            pid: get_prop_or(*SEC_PID)?.parse()?,
+            uid: get_prop_or(*SEC_UID)?.parse()?,
+            gid: get_prop_or(*SEC_GID)?.parse()?,
+            label: get_prop_or(*SEC_LABEL)?,
+            application_name: get_prop_or(*APP_NAME)?,
+        })
+    }
+}
+
 pub(crate) enum PipewireObject {
     Port(Port),
     Node(Node),
+    Link(Link),
+    Client(Client),
 }
 
 impl PipewireObject {

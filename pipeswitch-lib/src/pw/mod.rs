@@ -42,6 +42,8 @@ impl PipewireState {
             PipewireMessage::NewGlobal(id, object) => match object {
                 PipewireObject::Port(port) => {} //println!("+ Port {id} {port:?}"),
                 PipewireObject::Node(node) => {} //println!("+ Node {id} {node:?}"),
+                PipewireObject::Link(node) => {} //println!("+ Node {id} {node:?}"),
+                PipewireObject::Client(node) => {} //println!("+ Node {id} {node:?}"),
             },
             PipewireMessage::GlobalRemoved(id) => {
                 println!("- Something {id}")
