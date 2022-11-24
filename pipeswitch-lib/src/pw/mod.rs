@@ -1,5 +1,6 @@
-use pipewire::{channel::Receiver as PipewireReceiver, Context, MainLoop};
+use pipewire::{channel::Receiver as PipewireReceiver, types::ObjectType, Context, MainLoop};
 use std::{
+    collections::HashMap,
     num::ParseIntError,
     str::ParseBoolError,
     sync::{mpsc::Sender, Arc, Mutex},
@@ -10,7 +11,7 @@ mod types;
 
 use types::VERSION;
 
-use self::types::PipewireObject;
+use self::types::{Client, Link, Node, PipewireObject, Port};
 
 #[derive(Error, Debug)]
 pub enum PipewireError {
@@ -32,25 +33,53 @@ pub enum PipewireError {
 }
 
 enum PipewireMessage {
-    NewGlobal(u32, PipewireObject),
+    NewGlobal(u32, ObjectType, PipewireObject),
     GlobalRemoved(u32),
 }
 
-pub(crate) struct PipewireState {}
+#[derive(Default)]
+pub struct PipewireState {
+    pub object_types: HashMap<u32, ObjectType>,
+    pub ports: HashMap<u32, Port>,
+    pub nodes: HashMap<u32, Node>,
+    pub links: HashMap<u32, Link>,
+    pub clients: HashMap<u32, Client>,
+}
 
 impl PipewireState {
     fn process_message(&mut self, message: PipewireMessage) {
         match message {
-            PipewireMessage::NewGlobal(id, object) => match object {
-                PipewireObject::Port(port) => println!("+ Port {id} {port:?}"),
-                PipewireObject::Node(node) => println!("+ Node {id} {node:?}"),
-                PipewireObject::Link(link) => println!("+ Link {id} {link:?}"),
-                PipewireObject::Client(client) => println!("+ Client {id} {client:?}"),
-            },
+            PipewireMessage::NewGlobal(id, obj_type, object) => {
+                self.object_types.insert(id, obj_type);
+                match object {
+                    PipewireObject::Port(port) => drop(self.ports.insert(id, port)),
+                    PipewireObject::Node(node) => drop(self.nodes.insert(node.id, node)),
+                    PipewireObject::Link(link) => drop(self.links.insert(link.id, link)),
+                    PipewireObject::Client(client) => drop(self.clients.insert(client.id, client)),
+                }
+            }
             PipewireMessage::GlobalRemoved(id) => {
-                println!("- Something {id}")
+                if let Some(obj_type) = self.object_types.get(&id) {
+                    match obj_type {
+                        ObjectType::Port => drop(self.ports.remove(&id)),
+                        ObjectType::Node => drop(self.nodes.remove(&id)),
+                        ObjectType::Link => drop(self.links.remove(&id)),
+                        ObjectType::Client => drop(self.clients.remove(&id)),
+                        _ => {}
+                    }
+                }
             }
         }
+    }
+
+    pub fn ports_by_node(&self, node: &Node) -> Vec<&Port> {
+        let mut vec = Vec::new();
+        for (_, port) in &self.ports {
+            if port.node_id == node.id {
+                vec.push(port.clone());
+            }
+        }
+        vec
     }
 }
 
@@ -83,7 +112,11 @@ pub(crate) fn mainloop(
                     state
                         .lock()
                         .unwrap()
-                        .process_message(PipewireMessage::NewGlobal(global.id, obj));
+                        .process_message(PipewireMessage::NewGlobal(
+                            global.id,
+                            global.type_.clone(),
+                            obj,
+                        ));
                 }
                 Err(e) => println!("{e}\n    {global:?}"),
                 _ => {}

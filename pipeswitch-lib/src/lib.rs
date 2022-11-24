@@ -1,5 +1,5 @@
 use std::{
-    sync::{mpsc::Sender, Arc, Mutex},
+    sync::{mpsc::Sender, Arc, Mutex, MutexGuard},
     thread::JoinHandle,
 };
 
@@ -17,7 +17,7 @@ pub struct Pipeswitch {
 
 impl Pipeswitch {
     pub fn new(sender: Option<Sender<()>>) -> Result<Self, PipewireError> {
-        let pipewire_state = Arc::new(Mutex::new(PipewireState {}));
+        let pipewire_state = Arc::new(Mutex::new(PipewireState::default()));
 
         let (pw_sender, pw_receiver) = pipewire::channel::channel::<Terminate>();
 
@@ -34,6 +34,10 @@ impl Pipeswitch {
     }
 
     pub fn shutdown(self) {}
+
+    pub fn get_current_state(&self) -> MutexGuard<PipewireState> {
+        self.pipewire_state.lock().unwrap()
+    }
 }
 
 impl Drop for Pipeswitch {
