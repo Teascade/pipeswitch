@@ -1,9 +1,16 @@
-use pipewire::{channel::Receiver as PipewireReceiver, types::ObjectType, Context, MainLoop};
+use pipewire::{
+    channel::Receiver as PipewireReceiver, types::ObjectType, Context, MainLoop, PW_ID_CORE,
+};
 use std::{
+    cell::Cell,
     collections::HashMap,
     num::ParseIntError,
+    rc::Rc,
     str::ParseBoolError,
-    sync::{mpsc::Sender, Arc, Mutex},
+    sync::{
+        mpsc::{self, Sender},
+        Arc, Mutex,
+    },
 };
 use thiserror::Error;
 
@@ -89,11 +96,19 @@ impl PipewireState {
     }
 }
 
-pub(crate) struct Terminate;
+pub(crate) enum MainloopActions {
+    Terminate,
+    Roundtrip,
+}
+
+pub(crate) enum MainloopEvents {
+    Done,
+}
 
 pub(crate) fn mainloop(
     sender: Option<Sender<PipeswitchMessage>>,
-    receiver: PipewireReceiver<Terminate>,
+    ps_sender: mpsc::Sender<MainloopEvents>,
+    receiver: PipewireReceiver<MainloopActions>,
     state: Arc<Mutex<PipewireState>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mainloop = MainLoop::new()?;
@@ -101,13 +116,37 @@ pub(crate) fn mainloop(
     let core = context.connect(None)?;
     let registry = core.get_registry()?;
 
+    let pending_seq = Rc::new(Cell::new(None));
+
     let _rec = receiver.attach(&mainloop, {
         let mainloop = mainloop.clone();
-        move |_| mainloop.quit()
+        let core = core.clone();
+        let pending_seq = pending_seq.clone();
+        move |action| match action {
+            MainloopActions::Terminate => mainloop.quit(),
+            MainloopActions::Roundtrip => {
+                if pending_seq.get().is_none() {
+                    pending_seq.set(Some(core.sync(0).expect("sync failed")));
+                }
+            }
+        }
     });
 
     // This needs to be a listener for doing roundtrips to server, later.
-    let _listener_core = core.add_listener_local().done(|_, _| ());
+    let _listener_core = core
+        .add_listener_local()
+        .done({
+            move |id, seq| {
+                let pending = pending_seq.get();
+                if pending.is_some() {
+                    if id == PW_ID_CORE && Some(seq) == pending {
+                        ps_sender.send(MainloopEvents::Done).unwrap();
+                        pending_seq.set(None);
+                    }
+                }
+            }
+        })
+        .register();
 
     let _listener = registry
         .add_listener_local()

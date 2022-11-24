@@ -12,6 +12,8 @@ fn main() {
     sdl2_signaller::open_window_thread(sender);
     while let Ok(keycode) = receiver.recv() {
         let state = ps.lock_current_state();
+        println!("Doing roundtrip");
+        ps.roundtrip().unwrap();
         println!("Current nodes:");
         for (node_id, node) in &state.nodes {
             let node_name = &node.node_name;
