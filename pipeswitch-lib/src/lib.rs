@@ -8,7 +8,11 @@ use std::{
 
 use pipewire::channel::Sender as PipewireSender;
 pub use pw::PipewireError;
-use pw::{mainloop, types::PipewireObject, MainloopActions, MainloopEvents, PipewireState};
+use pw::{
+    mainloop,
+    types::{Link, PipewireObject, Port},
+    MainloopActions, MainloopEvents, PipewireState,
+};
 
 mod pw;
 
@@ -49,16 +53,32 @@ impl Pipeswitch {
         self.pipewire_state.lock().unwrap()
     }
 
-    pub fn roundtrip(&self) -> Result<(), PipewireError> {
+    pub fn create_link(&self, port1: &Port, port2: &Port) -> Result<Option<Link>, PipewireError> {
+        let lock = self.pipewire_state.lock().unwrap();
+        let factory_name = lock
+            .factories
+            .get("PipeWire:Interface:Link")
+            .ok_or(PipewireError::Unknown)?
+            .name
+            .clone();
+        drop(lock);
+
         self.sender
-            .send(MainloopActions::Roundtrip)
+            .send(MainloopActions::CreateLink(
+                factory_name,
+                port1.node_id,
+                port1.id,
+                port2.node_id,
+                port2.id,
+            ))
             .map_err(|_| PipewireError::Unknown)?;
-        loop {
-            if let Ok(MainloopEvents::Done) = self.mainloop_receiver.recv() {
-                break;
+
+        let link = loop {
+            if let Ok(MainloopEvents::LinkCreated(link)) = self.mainloop_receiver.recv() {
+                break link;
             }
-        }
-        Ok(())
+        };
+        Ok(link)
     }
 }
 

@@ -122,16 +122,17 @@ pub struct Link {
 
 impl Link {
     pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
-        let props = global
-            .props
-            .as_ref()
-            .ok_or(PipewireError::MissingProps(global.id))?;
+        Link::from_props(global.id, global.props.as_ref())
+    }
+
+    pub fn from_props(id: u32, props: Option<&ForeignDict>) -> Result<Self, PipewireError> {
+        let props = props.ok_or(PipewireError::MissingProps(id))?;
         let get_prop = |property| props.get(property).map(|v| v.to_string());
         let get_prop_or =
             |property| get_prop(property).ok_or(PipewireError::PropNotFound("Node", property));
 
         Ok(Link {
-            id: global.id,
+            id,
             factory_id: get_prop_or(*FACTORY_ID)?.parse()?,
             client_id: get_prop(*CLIENT_ID).map(|v| v.parse()).transpose()?,
             output_node: get_prop_or(*LINK_OUTPUT_NODE)?.parse()?,
@@ -177,12 +178,40 @@ impl Client {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
+pub struct Factory {
+    pub id: PwIdType,
+    pub module_id: PwIdType,
+    pub name: String,
+    pub type_name: String,
+}
+
+impl Factory {
+    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
+        let props = global
+            .props
+            .as_ref()
+            .ok_or(PipewireError::MissingProps(global.id))?;
+        let get_prop = |property| props.get(property).map(|v| v.to_string());
+        let get_prop_or =
+            |property| get_prop(property).ok_or(PipewireError::PropNotFound("Node", property));
+
+        Ok(Factory {
+            id: global.id,
+            module_id: get_prop_or(*MODULE_ID)?.parse()?,
+            name: get_prop_or(*FACTORY_NAME)?,
+            type_name: get_prop_or(*FACTORY_TYPE_NAME)?,
+        })
+    }
+}
+
+#[derive(Clone, Debug)]
 pub enum PipewireObject {
     Port(Port),
     Node(Node),
     Link(Link),
     Client(Client),
+    Factory(Factory),
 }
 
 impl PipewireObject {
@@ -195,6 +224,7 @@ impl PipewireObject {
             ObjectType::Node => Ok(Some(Self::Node(Node::from_global(global)?))),
             ObjectType::Link => Ok(Some(Self::Link(Link::from_global(global)?))),
             ObjectType::Client => Ok(Some(Self::Client(Client::from_global(global)?))),
+            ObjectType::Factory => Ok(Some(Self::Factory(Factory::from_global(global)?))),
             _ => Ok(None),
         }
     }

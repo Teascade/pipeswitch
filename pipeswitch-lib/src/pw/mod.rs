@@ -1,11 +1,13 @@
 use pipewire::{
-    channel::Receiver as PipewireReceiver, types::ObjectType, Context, MainLoop, PW_ID_CORE,
+    channel::Receiver as PipewireReceiver,
+    proxy::ProxyT,
+    spa::{AsyncSeq, ForeignDict},
+    types::ObjectType,
+    Context, MainLoop, PW_ID_CORE,
 };
 use std::{
-    cell::Cell,
     collections::HashMap,
     num::ParseIntError,
-    rc::Rc,
     str::ParseBoolError,
     sync::{
         mpsc::{self, Sender},
@@ -20,7 +22,7 @@ use types::VERSION;
 
 use crate::PipeswitchMessage;
 
-use self::types::{Client, Link, Node, PipewireObject, Port};
+use self::types::{Client, Factory, Link, Node, PipewireObject, Port};
 
 #[derive(Error, Debug)]
 pub enum PipewireError {
@@ -53,6 +55,7 @@ pub struct PipewireState {
     pub nodes: HashMap<u32, Node>,
     pub links: HashMap<u32, Link>,
     pub clients: HashMap<u32, Client>,
+    pub factories: HashMap<String, Factory>,
 }
 
 impl PipewireState {
@@ -64,8 +67,13 @@ impl PipewireState {
                 match object.clone() {
                     PipewireObject::Port(port) => drop(self.ports.insert(id, port)),
                     PipewireObject::Node(node) => drop(self.nodes.insert(node.id, node)),
-                    PipewireObject::Link(link) => drop(self.links.insert(link.id, link)),
+                    PipewireObject::Link(link) => {
+                        drop(self.links.insert(link.id, link));
+                    }
                     PipewireObject::Client(client) => drop(self.clients.insert(client.id, client)),
+                    PipewireObject::Factory(factory) => {
+                        drop(self.factories.insert(factory.type_name.clone(), factory))
+                    }
                 }
                 Some(object)
             }
@@ -98,11 +106,18 @@ impl PipewireState {
 
 pub(crate) enum MainloopActions {
     Terminate,
-    Roundtrip,
+    CreateLink(String, u32, u32, u32, u32),
 }
 
+#[derive(Debug)]
 pub(crate) enum MainloopEvents {
     Done,
+    LinkCreated(Option<Link>),
+}
+
+enum Roundtrip {
+    Internal(AsyncSeq, u32),
+    External(AsyncSeq),
 }
 
 pub(crate) fn mainloop(
@@ -116,32 +131,91 @@ pub(crate) fn mainloop(
     let core = context.connect(None)?;
     let registry = core.get_registry()?;
 
-    let pending_seq = Rc::new(Cell::new(None));
+    let pending_seq = Arc::new(Mutex::new(None));
+
+    let proxy_info: Arc<Mutex<HashMap<u32, Link>>> = Arc::new(Mutex::new(HashMap::new()));
+    let info_listeners = Arc::new(Mutex::new(HashMap::new()));
 
     let _rec = receiver.attach(&mainloop, {
         let mainloop = mainloop.clone();
         let core = core.clone();
         let pending_seq = pending_seq.clone();
+        let ps_sender = ps_sender.clone();
+        let proxy_info = proxy_info.clone();
+        let info_listeners = info_listeners.clone();
         move |action| match action {
             MainloopActions::Terminate => mainloop.quit(),
-            MainloopActions::Roundtrip => {
-                if pending_seq.get().is_none() {
-                    pending_seq.set(Some(core.sync(0).expect("sync failed")));
+            MainloopActions::CreateLink(factory_name, inode, iport, onode, oport) => {
+                let props = pipewire::properties! {
+                    *pipewire::keys::LINK_OUTPUT_NODE => onode.to_string(),
+                    *pipewire::keys::LINK_OUTPUT_PORT => iport.to_string(),
+                    *pipewire::keys::LINK_INPUT_NODE => inode.to_string(),
+                    *pipewire::keys::LINK_INPUT_PORT => oport.to_string(),
+                    "object.linger" => "1"
+                };
+                let proxy = core
+                    .create_object::<pipewire::link::Link, _>(&factory_name, &props)
+                    .unwrap();
+                let proxy_id = proxy.upcast_ref().id();
+
+                let info_lock = proxy_info.lock().unwrap();
+                if let Some(info) = info_lock.get(&proxy_id) {
+                    ps_sender
+                        .send(MainloopEvents::LinkCreated(Some(info.clone())))
+                        .unwrap();
+                } else {
+                    let listener = proxy
+                        .add_listener_local()
+                        .info({
+                            let proxy_info = proxy_info.clone();
+                            move |info| {
+                                let mut info_lock = proxy_info.lock().unwrap();
+                                info_lock.insert(
+                                    proxy_id,
+                                    Link::from_props(info.id(), info.props()).unwrap(),
+                                );
+                            }
+                        })
+                        .register();
+                    let mut listener_lock = info_listeners.lock().unwrap();
+                    listener_lock.insert(proxy_id, (proxy, listener));
+                    let mut lock = pending_seq.lock().unwrap();
+                    *lock = Some(Roundtrip::Internal(
+                        core.sync(0).expect("sync failed"),
+                        proxy_id,
+                    ));
                 }
             }
         }
     });
 
-    // This needs to be a listener for doing roundtrips to server, later.
     let _listener_core = core
         .add_listener_local()
         .done({
+            let ps_sender = ps_sender.clone();
+            let proxy_info = proxy_info.clone();
+            let info_listeners = info_listeners.clone();
             move |id, seq| {
-                let pending = pending_seq.get();
-                if pending.is_some() {
-                    if id == PW_ID_CORE && Some(seq) == pending {
-                        ps_sender.send(MainloopEvents::Done).unwrap();
-                        pending_seq.set(None);
+                let mut lock = pending_seq.lock().unwrap();
+                if id == PW_ID_CORE {
+                    match lock.as_ref() {
+                        Some(Roundtrip::Internal(s, id)) => {
+                            if s == &seq {
+                                let mut info_lock = proxy_info.lock().unwrap();
+                                let info = info_lock.get(id).cloned();
+                                info_lock.remove(&id);
+                                info_listeners.lock().unwrap().remove(&id);
+                                *lock = None;
+                                ps_sender.send(MainloopEvents::LinkCreated(info)).unwrap();
+                            }
+                        }
+                        Some(Roundtrip::External(s)) => {
+                            if s == &seq {
+                                *lock = None;
+                                ps_sender.send(MainloopEvents::Done).unwrap();
+                            }
+                        }
+                        None => {}
                     }
                 }
             }
@@ -164,7 +238,7 @@ pub(crate) fn mainloop(
                             obj,
                         ));
                     if let (Some(sender), Some(result)) = (&sender, result) {
-                        sender.send(PipeswitchMessage::NewObject(result)).unwrap()
+                        sender.send(PipeswitchMessage::NewObject(result)).unwrap();
                     }
                 }
                 Err(e) => println!("{e}\n    {global:?}"),
