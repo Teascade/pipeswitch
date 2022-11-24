@@ -20,5 +20,11 @@
         "node.name": "spotify",
         "media.class": "Stream/Output/Audio",
         "media.role": "Music"
+    },
+    "29": {
+        "object.serial": "29",
+        "factory.id": "10",
+        "priority.driver": "19000",
+        "node.name": "Freewheel-Driver"
     }
 }

@@ -18,8 +18,8 @@ pub enum PipewireError {
     ParseIntError(#[from] ParseIntError),
     #[error("Failed to parse boolean: {0}")]
     ParseBoolError(#[from] ParseBoolError),
-    #[error("property not found: {0}")]
-    PropNotFound(&'static str),
+    #[error("({0}) property not found: {1}")]
+    PropNotFound(&'static str, &'static str),
     #[error("object version invalid, expected {VERSION}, got {0}")]
     InvalidVersion(u32),
     #[error("globalobject does not have properties: {0}")]
@@ -39,9 +39,10 @@ pub(crate) struct PipewireState {}
 impl PipewireState {
     fn process_message(&mut self, message: PipewireMessage) {
         match message {
-            PipewireMessage::NewGlobal(id, PipewireObject::Port(port)) => {
-                println!("+ Port {id} {port:?}")
-            }
+            PipewireMessage::NewGlobal(id, object) => match object {
+                PipewireObject::Port(port) => {} //println!("+ Port {id} {port:?}"),
+                PipewireObject::Node(node) => {} //println!("+ Node {id} {node:?}"),
+            },
             PipewireMessage::GlobalRemoved(id) => {
                 println!("- Something {id}")
             }
@@ -80,7 +81,7 @@ pub(crate) fn mainloop(
                         .unwrap()
                         .process_message(PipewireMessage::NewGlobal(global.id, obj));
                 }
-                Err(e) => println!("{e} {global:?}"),
+                Err(e) => println!("{e}\n    {global:?}"),
                 _ => {}
             }
         })
