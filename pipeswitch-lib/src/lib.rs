@@ -5,9 +5,14 @@ use std::{
 
 use pipewire::channel::Sender as PipewireSender;
 pub use pw::PipewireError;
-use pw::{mainloop, PipewireState, Terminate};
+use pw::{mainloop, types::PipewireObject, PipewireState, Terminate};
 
 mod pw;
+
+pub enum PipeswitchMessage {
+    NewObject(PipewireObject),
+    ObjectRemoved(PipewireObject),
+}
 
 pub struct Pipeswitch {
     pipewire_state: Arc<Mutex<PipewireState>>,
@@ -16,7 +21,7 @@ pub struct Pipeswitch {
 }
 
 impl Pipeswitch {
-    pub fn new(sender: Option<Sender<()>>) -> Result<Self, PipewireError> {
+    pub fn new(sender: Option<Sender<PipeswitchMessage>>) -> Result<Self, PipewireError> {
         let pipewire_state = Arc::new(Mutex::new(PipewireState::default()));
 
         let (pw_sender, pw_receiver) = pipewire::channel::channel::<Terminate>();
@@ -33,9 +38,7 @@ impl Pipeswitch {
         })
     }
 
-    pub fn shutdown(self) {}
-
-    pub fn get_current_state(&self) -> MutexGuard<PipewireState> {
+    pub fn lock_current_state(&self) -> MutexGuard<PipewireState> {
         self.pipewire_state.lock().unwrap()
     }
 }

@@ -7,9 +7,11 @@ use std::{
 };
 use thiserror::Error;
 
-mod types;
+pub mod types;
 
 use types::VERSION;
+
+use crate::PipeswitchMessage;
 
 use self::types::{Client, Link, Node, PipewireObject, Port};
 
@@ -47,36 +49,40 @@ pub struct PipewireState {
 }
 
 impl PipewireState {
-    fn process_message(&mut self, message: PipewireMessage) {
+    fn process_message(&mut self, message: PipewireMessage) -> Option<PipewireObject> {
+        use PipewireObject::*;
         match message {
             PipewireMessage::NewGlobal(id, obj_type, object) => {
                 self.object_types.insert(id, obj_type);
-                match object {
+                match object.clone() {
                     PipewireObject::Port(port) => drop(self.ports.insert(id, port)),
                     PipewireObject::Node(node) => drop(self.nodes.insert(node.id, node)),
                     PipewireObject::Link(link) => drop(self.links.insert(link.id, link)),
                     PipewireObject::Client(client) => drop(self.clients.insert(client.id, client)),
                 }
+                Some(object)
             }
             PipewireMessage::GlobalRemoved(id) => {
                 if let Some(obj_type) = self.object_types.get(&id) {
                     match obj_type {
-                        ObjectType::Port => drop(self.ports.remove(&id)),
-                        ObjectType::Node => drop(self.nodes.remove(&id)),
-                        ObjectType::Link => drop(self.links.remove(&id)),
-                        ObjectType::Client => drop(self.clients.remove(&id)),
-                        _ => {}
+                        ObjectType::Port => self.ports.remove(&id).map(|p| Port(p)),
+                        ObjectType::Node => self.nodes.remove(&id).map(|n| Node(n)),
+                        ObjectType::Link => self.links.remove(&id).map(|l| Link(l)),
+                        ObjectType::Client => self.clients.remove(&id).map(|c| Client(c)),
+                        _ => None,
                     }
+                } else {
+                    None
                 }
             }
         }
     }
 
-    pub fn ports_by_node(&self, node: &Node) -> Vec<&Port> {
+    pub fn ports_by_node(&self, node_id: u32) -> Vec<&Port> {
         let mut vec = Vec::new();
         for (_, port) in &self.ports {
-            if port.node_id == node.id {
-                vec.push(port.clone());
+            if port.node_id == node_id {
+                vec.push(port);
             }
         }
         vec
@@ -86,7 +92,7 @@ impl PipewireState {
 pub(crate) struct Terminate;
 
 pub(crate) fn mainloop(
-    _: Option<Sender<()>>,
+    sender: Option<Sender<PipeswitchMessage>>,
     receiver: PipewireReceiver<Terminate>,
     state: Arc<Mutex<PipewireState>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -107,9 +113,10 @@ pub(crate) fn mainloop(
         .add_listener_local()
         .global({
             let state = state.clone();
+            let sender = sender.clone();
             move |global| match PipewireObject::from_global(global) {
                 Ok(Some(obj)) => {
-                    state
+                    let result = state
                         .lock()
                         .unwrap()
                         .process_message(PipewireMessage::NewGlobal(
@@ -117,16 +124,24 @@ pub(crate) fn mainloop(
                             global.type_.clone(),
                             obj,
                         ));
+                    if let (Some(sender), Some(result)) = (&sender, result) {
+                        sender.send(PipeswitchMessage::NewObject(result)).unwrap()
+                    }
                 }
                 Err(e) => println!("{e}\n    {global:?}"),
                 _ => {}
             }
         })
         .global_remove(move |global_id| {
-            state
+            let result = state
                 .lock()
                 .unwrap()
                 .process_message(PipewireMessage::GlobalRemoved(global_id));
+            if let (Some(sender), Some(result)) = (&sender, result) {
+                sender
+                    .send(PipeswitchMessage::ObjectRemoved(result))
+                    .unwrap()
+            }
         })
         .register();
 

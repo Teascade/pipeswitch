@@ -11,7 +11,7 @@ pub const VERSION: u32 = 3;
 
 type PwIdType = u32;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Port {
     pub id: PwIdType,
     pub port_id: PwIdType,
@@ -26,7 +26,7 @@ pub struct Port {
     pub terminal: Option<bool>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Direction {
     Input,
     Output,
@@ -68,7 +68,7 @@ impl Port {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Node {
     pub id: PwIdType,
     pub path: Option<String>,
@@ -109,7 +109,7 @@ impl Node {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Link {
     pub id: PwIdType,
     pub factory_id: PwIdType,
@@ -142,7 +142,7 @@ impl Link {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Client {
     pub id: PwIdType,
     pub module_id: PwIdType,
@@ -177,7 +177,8 @@ impl Client {
     }
 }
 
-pub(crate) enum PipewireObject {
+#[derive(Clone)]
+pub enum PipewireObject {
     Port(Port),
     Node(Node),
     Link(Link),
