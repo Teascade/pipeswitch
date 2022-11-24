@@ -14,8 +14,8 @@ fn main() {
         println!("starting");
         let state = ps.lock_current_state();
         println!("Current nodes:");
-        let mut port1 = None;
-        let mut port2 = None;
+        let mut output = None;
+        let mut input = None;
         let mut name = "spotify";
         if keycode == Keycode::A {
             name = "Firefox"
@@ -32,22 +32,22 @@ fn main() {
             if node.node_name == "WEBRTC VoiceEngine" {
                 for port in &ports {
                     if port.name == "input_MONO" {
-                        port2 = Some((*port).clone());
+                        input = Some((*port).clone());
                     }
                 }
             }
             if node.node_name == name {
                 for port in &ports {
                     if port.name == "output_FR" {
-                        port1 = Some((*port).clone());
+                        output = Some((*port).clone());
                     }
                 }
             }
         }
         drop(state);
 
-        if let (Some(p1), Some(p2)) = (port1, port2) {
-            let link = ps.create_link(&p1, &p2).unwrap();
+        if let (Some(o), Some(i)) = (output, input) {
+            let link = ps.create_link(o, i).unwrap();
             println!("{link:?}");
         }
 

@@ -53,7 +53,7 @@ impl Pipeswitch {
         self.pipewire_state.lock().unwrap()
     }
 
-    pub fn create_link(&self, port1: &Port, port2: &Port) -> Result<Option<Link>, PipewireError> {
+    pub fn create_link(&self, output: Port, input: Port) -> Result<Option<Link>, PipewireError> {
         let lock = self.pipewire_state.lock().unwrap();
         let factory_name = lock
             .factories
@@ -64,13 +64,7 @@ impl Pipeswitch {
         drop(lock);
 
         self.sender
-            .send(MainloopActions::CreateLink(
-                factory_name,
-                port1.node_id,
-                port1.id,
-                port2.node_id,
-                port2.id,
-            ))
+            .send(MainloopActions::CreateLink(factory_name, output, input))
             .map_err(|_| PipewireError::Unknown)?;
 
         let link = loop {

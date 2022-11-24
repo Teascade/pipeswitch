@@ -1,8 +1,5 @@
 use pipewire::{
-    channel::Receiver as PipewireReceiver,
-    proxy::ProxyT,
-    spa::{AsyncSeq, ForeignDict},
-    types::ObjectType,
+    channel::Receiver as PipewireReceiver, proxy::ProxyT, spa::AsyncSeq, types::ObjectType,
     Context, MainLoop, PW_ID_CORE,
 };
 use std::{
@@ -106,18 +103,16 @@ impl PipewireState {
 
 pub(crate) enum MainloopActions {
     Terminate,
-    CreateLink(String, u32, u32, u32, u32),
+    CreateLink(String, Port, Port),
 }
 
 #[derive(Debug)]
 pub(crate) enum MainloopEvents {
-    Done,
     LinkCreated(Option<Link>),
 }
 
 enum Roundtrip {
     Internal(AsyncSeq, u32),
-    External(AsyncSeq),
 }
 
 pub(crate) fn mainloop(
@@ -145,12 +140,12 @@ pub(crate) fn mainloop(
         let info_listeners = info_listeners.clone();
         move |action| match action {
             MainloopActions::Terminate => mainloop.quit(),
-            MainloopActions::CreateLink(factory_name, inode, iport, onode, oport) => {
+            MainloopActions::CreateLink(factory_name, output, input) => {
                 let props = pipewire::properties! {
-                    *pipewire::keys::LINK_OUTPUT_NODE => onode.to_string(),
-                    *pipewire::keys::LINK_OUTPUT_PORT => iport.to_string(),
-                    *pipewire::keys::LINK_INPUT_NODE => inode.to_string(),
-                    *pipewire::keys::LINK_INPUT_PORT => oport.to_string(),
+                    *pipewire::keys::LINK_OUTPUT_NODE => output.node_id.to_string(),
+                    *pipewire::keys::LINK_OUTPUT_PORT => output.id.to_string(),
+                    *pipewire::keys::LINK_INPUT_NODE => input.node_id.to_string(),
+                    *pipewire::keys::LINK_INPUT_PORT => input.id.to_string(),
                     "object.linger" => "1"
                 };
                 let proxy = core
@@ -207,12 +202,6 @@ pub(crate) fn mainloop(
                                 info_listeners.lock().unwrap().remove(&id);
                                 *lock = None;
                                 ps_sender.send(MainloopEvents::LinkCreated(info)).unwrap();
-                            }
-                        }
-                        Some(Roundtrip::External(s)) => {
-                            if s == &seq {
-                                *lock = None;
-                                ps_sender.send(MainloopEvents::Done).unwrap();
                             }
                         }
                         None => {}
