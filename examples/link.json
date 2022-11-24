@@ -7,5 +7,13 @@
         "link.input.port": "44",
         "link.output.node": "817",
         "link.input.node": "70"
+    },
+    "110": {
+        "object.serial": "1163",
+        "factory.id": "20",
+        "link.output.port": "62",
+        "link.input.port": "63",
+        "link.output.node": "57",
+        "link.input.node": "58"
     }
 }

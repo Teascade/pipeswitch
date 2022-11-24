@@ -24,6 +24,8 @@ pub enum PipewireError {
     InvalidVersion(u32),
     #[error("globalobject does not have properties: {0}")]
     MissingProps(u32),
+    #[error("direction not valid: {0}")]
+    InvalidDirection(String),
     #[cfg(debug_assertions)]
     #[error("unknown error")]
     Unknown,
@@ -40,10 +42,10 @@ impl PipewireState {
     fn process_message(&mut self, message: PipewireMessage) {
         match message {
             PipewireMessage::NewGlobal(id, object) => match object {
-                PipewireObject::Port(port) => {} //println!("+ Port {id} {port:?}"),
-                PipewireObject::Node(node) => {} //println!("+ Node {id} {node:?}"),
-                PipewireObject::Link(node) => {} //println!("+ Node {id} {node:?}"),
-                PipewireObject::Client(node) => {} //println!("+ Node {id} {node:?}"),
+                PipewireObject::Port(port) => println!("+ Port {id} {port:?}"),
+                PipewireObject::Node(node) => println!("+ Node {id} {node:?}"),
+                PipewireObject::Link(link) => println!("+ Link {id} {link:?}"),
+                PipewireObject::Client(client) => println!("+ Client {id} {client:?}"),
             },
             PipewireMessage::GlobalRemoved(id) => {
                 println!("- Something {id}")

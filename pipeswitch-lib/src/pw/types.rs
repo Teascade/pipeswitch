@@ -20,10 +20,27 @@ pub struct Port {
     pub dsp: Option<String>,
     pub channel: Option<String>,
     pub name: String,
-    pub direction: String,
+    pub direction: Direction,
     pub alias: String,
     pub physical: Option<bool>,
     pub terminal: Option<bool>,
+}
+
+#[derive(Debug)]
+pub enum Direction {
+    Input,
+    Output,
+}
+
+impl Direction {
+    fn from<T: Into<String>>(input: T) -> Result<Self, PipewireError> {
+        let input = input.into();
+        match input.as_str() {
+            "in" => Ok(Direction::Input),
+            "out" => Ok(Direction::Output),
+            _ => Err(PipewireError::InvalidDirection(input)),
+        }
+    }
 }
 
 impl Port {
@@ -43,7 +60,7 @@ impl Port {
             dsp: get_prop(*FORMAT_DSP),
             channel: get_prop(*AUDIO_CHANNEL),
             name: get_prop_or(*PORT_NAME)?,
-            direction: get_prop_or(*PORT_DIRECTION)?,
+            direction: Direction::from(get_prop_or(*PORT_DIRECTION)?)?,
             alias: get_prop_or(*PORT_ALIAS)?,
             physical: get_prop(*PORT_PHYSICAL).map(|v| v.parse()).transpose()?,
             terminal: get_prop(*PORT_TERMINAL).map(|v| v.parse()).transpose()?,
@@ -96,7 +113,7 @@ impl Node {
 pub struct Link {
     pub id: PwIdType,
     pub factory_id: PwIdType,
-    pub client_id: PwIdType,
+    pub client_id: Option<PwIdType>,
     pub output_node: PwIdType,
     pub output_port: PwIdType,
     pub input_node: PwIdType,
@@ -116,7 +133,7 @@ impl Link {
         Ok(Link {
             id: global.id,
             factory_id: get_prop_or(*FACTORY_ID)?.parse()?,
-            client_id: get_prop_or(*CLIENT_ID)?.parse()?,
+            client_id: get_prop(*CLIENT_ID).map(|v| v.parse()).transpose()?,
             output_node: get_prop_or(*LINK_OUTPUT_NODE)?.parse()?,
             output_port: get_prop_or(*LINK_OUTPUT_PORT)?.parse()?,
             input_node: get_prop_or(*LINK_INPUT_NODE)?.parse()?,
@@ -175,6 +192,8 @@ impl PipewireObject {
         match global.type_ {
             ObjectType::Port => Ok(Some(Self::Port(Port::from_global(global)?))),
             ObjectType::Node => Ok(Some(Self::Node(Node::from_global(global)?))),
+            ObjectType::Link => Ok(Some(Self::Link(Link::from_global(global)?))),
+            ObjectType::Client => Ok(Some(Self::Client(Client::from_global(global)?))),
             _ => Ok(None),
         }
     }
