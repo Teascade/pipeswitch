@@ -14,6 +14,7 @@ use pw::{
     MainloopActions, MainloopEvents, PipewireState,
 };
 
+pub mod config;
 mod pw;
 
 pub enum PipeswitchMessage {

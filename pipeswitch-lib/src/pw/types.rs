@@ -14,7 +14,8 @@ type PwIdType = u32;
 #[derive(Debug, Clone)]
 pub struct Port {
     pub id: PwIdType,
-    pub port_id: PwIdType,
+    /// Usually 0 or 1
+    pub local_port_id: PwIdType,
     pub path: Option<String>,
     pub node_id: PwIdType,
     pub dsp: Option<String>,
@@ -54,7 +55,7 @@ impl Port {
             |property| get_prop(property).ok_or(PipewireError::PropNotFound("Port", property));
         Ok(Port {
             id: global.id,
-            port_id: get_prop_or(*PORT_ID)?.parse()?,
+            local_port_id: get_prop_or(*PORT_ID)?.parse()?,
             path: get_prop(*OBJECT_PATH),
             node_id: get_prop_or(*NODE_ID)?.parse()?,
             dsp: get_prop(*FORMAT_DSP),

@@ -1,11 +1,22 @@
 use std::sync::mpsc::channel;
 
-use pipeswitch_lib::Pipeswitch;
+use pipeswitch_lib::{
+    config::{Config, Link, NodeOrTarget, Target},
+    Pipeswitch,
+};
 use sdl2::keyboard::Keycode;
 
 mod sdl2_signaller;
 
+const TEST_CONFIG: &str = include_str!("testconfig.toml");
+
 fn main() {
+    let (mut config, document) = Config::from_string(TEST_CONFIG).unwrap();
+    config.links.get_mut("hello").unwrap().output = NodeOrTarget::NodeName("yeet".to_owned());
+    println!("{config:?}");
+    let back_to_string = config.to_string(Some(document)).unwrap();
+    println!("{back_to_string}");
+
     let ps = Pipeswitch::new(None).unwrap();
 
     let (sender, receiver) = channel();

@@ -5,6 +5,7 @@ use pipewire::{
 use std::{
     collections::HashMap,
     num::ParseIntError,
+    rc::Rc,
     str::ParseBoolError,
     sync::{
         mpsc::{self, Sender},
@@ -126,18 +127,17 @@ pub(crate) fn mainloop(
     let core = context.connect(None)?;
     let registry = core.get_registry()?;
 
-    let pending_seq = Arc::new(Mutex::new(None));
-
-    let proxy_info: Arc<Mutex<HashMap<u32, Link>>> = Arc::new(Mutex::new(HashMap::new()));
-    let info_listeners = Arc::new(Mutex::new(HashMap::new()));
+    let pending_seq = Rc::new(Mutex::new(None));
+    let link_info: Rc<Mutex<HashMap<u32, Link>>> = Rc::new(Mutex::new(HashMap::new()));
+    let proxy_map = Rc::new(Mutex::new(HashMap::new()));
 
     let _rec = receiver.attach(&mainloop, {
         let mainloop = mainloop.clone();
         let core = core.clone();
         let pending_seq = pending_seq.clone();
         let ps_sender = ps_sender.clone();
-        let proxy_info = proxy_info.clone();
-        let info_listeners = info_listeners.clone();
+        let link_info = link_info.clone();
+        let proxies = proxy_map.clone();
         move |action| match action {
             MainloopActions::Terminate => mainloop.quit(),
             MainloopActions::CreateLink(factory_name, output, input) => {
@@ -153,7 +153,7 @@ pub(crate) fn mainloop(
                     .unwrap();
                 let proxy_id = proxy.upcast_ref().id();
 
-                let info_lock = proxy_info.lock().unwrap();
+                let info_lock = link_info.lock().unwrap();
                 if let Some(info) = info_lock.get(&proxy_id) {
                     ps_sender
                         .send(MainloopEvents::LinkCreated(Some(info.clone())))
@@ -162,9 +162,9 @@ pub(crate) fn mainloop(
                     let listener = proxy
                         .add_listener_local()
                         .info({
-                            let proxy_info = proxy_info.clone();
+                            let link_info = link_info.clone();
                             move |info| {
-                                let mut info_lock = proxy_info.lock().unwrap();
+                                let mut info_lock = link_info.lock().unwrap();
                                 info_lock.insert(
                                     proxy_id,
                                     Link::from_props(info.id(), info.props()).unwrap(),
@@ -172,8 +172,8 @@ pub(crate) fn mainloop(
                             }
                         })
                         .register();
-                    let mut listener_lock = info_listeners.lock().unwrap();
-                    listener_lock.insert(proxy_id, (proxy, listener));
+                    let mut proxy_lock = proxies.lock().unwrap();
+                    proxy_lock.insert(proxy_id, (proxy, listener));
                     let mut lock = pending_seq.lock().unwrap();
                     *lock = Some(Roundtrip::Internal(
                         core.sync(0).expect("sync failed"),
@@ -188,8 +188,8 @@ pub(crate) fn mainloop(
         .add_listener_local()
         .done({
             let ps_sender = ps_sender.clone();
-            let proxy_info = proxy_info.clone();
-            let info_listeners = info_listeners.clone();
+            let proxy_info = link_info.clone();
+            let info_listeners = proxy_map.clone();
             move |id, seq| {
                 let mut lock = pending_seq.lock().unwrap();
                 if id == PW_ID_CORE {
@@ -197,11 +197,11 @@ pub(crate) fn mainloop(
                         Some(Roundtrip::Internal(s, id)) => {
                             if s == &seq {
                                 let mut info_lock = proxy_info.lock().unwrap();
-                                let info = info_lock.get(id).cloned();
-                                info_lock.remove(&id);
                                 info_listeners.lock().unwrap().remove(&id);
+                                ps_sender
+                                    .send(MainloopEvents::LinkCreated(info_lock.remove(&id)))
+                                    .unwrap();
                                 *lock = None;
-                                ps_sender.send(MainloopEvents::LinkCreated(info)).unwrap();
                             }
                         }
                         None => {}

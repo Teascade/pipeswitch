@@ -17,3 +17,5 @@ categories = ["multimedia::audio", "config"]
 [dependencies]
 pipewire = "0.5"
 thiserror = "1.0.37"
+serde = { version = "1.0.147", features = ["derive"] }
+toml_edit = { version = "0.15.0", features = ["serde"] }
