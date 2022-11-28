@@ -4,8 +4,5 @@
 
 ## C
 [link.hello]
-## D
 in = { client = "client_1", node = "node_1" }
-## E
 out = "Hello there!"
-## F

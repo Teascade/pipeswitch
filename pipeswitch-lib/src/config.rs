@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, str::FromStr};
-use toml_edit::{table, Array, Decor, Document, Item, TableLike, Value};
+use toml_edit::{table, Document, Item, Value};
 
-use crate::PipewireError;
+use crate::PipeswitchError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -39,17 +39,25 @@ pub struct Target {
 }
 
 impl Config {
-    pub fn to_string(&self, old_document: Option<Document>) -> Result<String, PipewireError> {
-        let mut document = toml_edit::ser::to_document(&self).unwrap();
+    pub fn to_string(&self, old_document: Option<Document>) -> Result<String, PipeswitchError> {
+        let mut document = toml_edit::ser::to_document(&self)?;
         // General
-        let mut general_item =
-            Item::Table(document.remove("general").unwrap().into_table().unwrap());
+        let mut general_item = Item::Table(
+            document
+                .remove("general")
+                .and_then(|v| v.into_table().ok())
+                .ok_or(PipeswitchError::Unknown)?,
+        );
 
         let mut link_item = table();
-        let tableref = link_item.as_table_mut().unwrap();
+        let tableref = link_item.as_table_mut().ok_or(PipeswitchError::Unknown)?;
         tableref.set_implicit(true);
-        for (internal_string, val) in document.remove("link").unwrap().into_table().unwrap() {
-            let table_item = Item::Table(val.into_table().unwrap());
+        for (internal_string, val) in document
+            .remove("link")
+            .and_then(|v| v.into_table().ok())
+            .ok_or(PipeswitchError::Unknown)?
+        {
+            let table_item = Item::Table(val.into_table().map_err(|_| PipeswitchError::Unknown)?);
             tableref.insert(&internal_string, table_item);
         }
 
@@ -64,16 +72,13 @@ impl Config {
         Ok(document.to_string())
     }
 
-    pub fn from_string(input: &str) -> Result<(Self, Document), PipewireError> {
-        let document = Document::from_str(input).unwrap();
-        Ok((
-            toml_edit::de::from_document(document.clone()).map_err(|_| PipewireError::Unknown)?,
-            document,
-        ))
+    pub fn from_string(input: &str) -> Result<(Self, Document), PipeswitchError> {
+        let document = Document::from_str(input)?;
+        Ok((toml_edit::de::from_document(document.clone())?, document))
     }
 }
 
-fn clone_decor(to: &mut Item, from: Option<&Item>) {
+pub fn clone_decor(to: &mut Item, from: Option<&Item>) {
     use Item::*;
     if let Some(from) = from {
         match (to, from) {
@@ -103,7 +108,7 @@ fn clone_decor(to: &mut Item, from: Option<&Item>) {
     }
 }
 
-fn clone_value_decor(to: &mut Value, from: &Value) {
+pub fn clone_value_decor(to: &mut Value, from: &Value) {
     use Value::*;
     match (to, from) {
         (InlineTable(to_table), InlineTable(from_table)) => {

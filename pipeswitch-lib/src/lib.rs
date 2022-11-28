@@ -1,3 +1,11 @@
+use pipewire::channel::Sender as PipewireSender;
+pub use pipewire::types::ObjectType;
+pub use pw::PipewireError;
+use pw::{
+    mainloop,
+    types::{Link, PipewireObject, Port},
+    MainloopActions, MainloopEvents, PipewireState,
+};
 use std::{
     sync::{
         mpsc::{self},
@@ -5,21 +13,36 @@ use std::{
     },
     thread::JoinHandle,
 };
-
-use pipewire::channel::Sender as PipewireSender;
-pub use pw::PipewireError;
-use pw::{
-    mainloop,
-    types::{Link, PipewireObject, Port},
-    MainloopActions, MainloopEvents, PipewireState,
-};
+use thiserror::Error;
+pub use toml_edit;
 
 pub mod config;
 mod pw;
 
+#[derive(Error, Debug)]
+pub enum PipeswitchError {
+    #[error("error with PipeWire interface: {0}")]
+    PipewireError(#[from] pw::PipewireError),
+    #[error("error reading config: {0}")]
+    TomlConvertError(#[from] toml_edit::TomlError),
+    #[error("error writing config: {0}")]
+    TomlSerializationError(#[from] toml_edit::ser::Error),
+    #[error("error reading config: {0}")]
+    TomlDeserializationError(#[from] toml_edit::de::Error),
+    #[error("no Link Factory found!")]
+    NoLinkFactory,
+    #[error("failure in background thread: {0}")]
+    CriticalThreadFailure(&'static str),
+    #[cfg(debug_assertions)]
+    #[error("unknown error")]
+    Unknown,
+}
+
+#[derive(Debug)]
 pub enum PipeswitchMessage {
     NewObject(PipewireObject),
     ObjectRemoved(PipewireObject),
+    Error(pw::PipewireError),
 }
 
 pub struct Pipeswitch {
@@ -30,7 +53,7 @@ pub struct Pipeswitch {
 }
 
 impl Pipeswitch {
-    pub fn new(sender: Option<mpsc::Sender<PipeswitchMessage>>) -> Result<Self, PipewireError> {
+    pub fn new(sender: Option<mpsc::Sender<PipeswitchMessage>>) -> Result<Self, PipeswitchError> {
         let pipewire_state = Arc::new(Mutex::new(PipewireState::default()));
 
         let (ps_sender, ps_receiver) = mpsc::channel();
@@ -39,7 +62,11 @@ impl Pipeswitch {
         let state_clone = pipewire_state.clone();
 
         let join_handle = std::thread::spawn(move || {
-            mainloop(sender, ps_sender, pw_receiver, state_clone.clone()).unwrap()
+            mainloop(sender, ps_sender, pw_receiver, state_clone.clone())
+                .map_err(|_| {
+                    PipeswitchError::CriticalThreadFailure("Background thread died unexpectedly")
+                })
+                .unwrap();
         });
 
         Ok(Pipeswitch {
@@ -54,19 +81,20 @@ impl Pipeswitch {
         self.pipewire_state.lock().unwrap()
     }
 
-    pub fn create_link(&self, output: Port, input: Port) -> Result<Option<Link>, PipewireError> {
+    pub fn create_link(&self, output: Port, input: Port) -> Result<Option<Link>, PipeswitchError> {
         let lock = self.pipewire_state.lock().unwrap();
         let factory_name = lock
             .factories
             .get("PipeWire:Interface:Link")
-            .ok_or(PipewireError::Unknown)?
+            .ok_or(PipeswitchError::NoLinkFactory)?
             .name
             .clone();
         drop(lock);
 
         self.sender
             .send(MainloopActions::CreateLink(factory_name, output, input))
-            .map_err(|_| PipewireError::Unknown)?;
+            .map_err(|_| PipeswitchError::CriticalThreadFailure("Failed to send create link"))
+            .unwrap();
 
         let link = loop {
             if let Ok(MainloopEvents::LinkCreated(link)) = self.mainloop_receiver.recv() {
@@ -81,7 +109,12 @@ impl Drop for Pipeswitch {
     fn drop(&mut self) {
         let _ = self.sender.send(MainloopActions::Terminate);
         if let Some(handle) = self.join_handle.take() {
-            handle.join().unwrap()
+            handle
+                .join()
+                .map_err(|_| {
+                    PipeswitchError::CriticalThreadFailure("Failed to wait thread to stop")
+                })
+                .unwrap();
         }
     }
 }

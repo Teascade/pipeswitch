@@ -2,7 +2,7 @@ use std::sync::mpsc::channel;
 
 use pipeswitch_lib::{
     config::{Config, Link, NodeOrTarget, Target},
-    Pipeswitch,
+    Pipeswitch, PipeswitchError, PipeswitchMessage, PipewireError,
 };
 use sdl2::keyboard::Keycode;
 
@@ -17,11 +17,17 @@ fn main() {
     let back_to_string = config.to_string(Some(document)).unwrap();
     println!("{back_to_string}");
 
-    let ps = Pipeswitch::new(None).unwrap();
+    let (ps_sender, ps_receiver) = channel();
+    let ps = Pipeswitch::new(Some(ps_sender)).unwrap();
 
     let (sender, receiver) = channel();
     sdl2_signaller::open_window_thread(sender);
+
     while let Ok(keycode) = receiver.recv() {
+        // while let Ok(PipeswitchMessage::Error(error)) = ps_receiver.recv() {
+        //     println!("{error}");
+        // }
+
         println!("starting");
         let state = ps.lock_current_state();
         println!("Current nodes:");

@@ -28,19 +28,22 @@ pub enum PipewireError {
     ParseIntError(#[from] ParseIntError),
     #[error("Failed to parse boolean: {0}")]
     ParseBoolError(#[from] ParseBoolError),
-    #[error("({0}) property not found: {1}")]
-    PropNotFound(&'static str, &'static str),
+    #[error("property '{3}' not found in object {0} of type {1}: {2:?}")]
+    PropNotFound(u32, ObjectType, HashMap<String, String>, &'static str),
     #[error("object version invalid, expected {VERSION}, got {0}")]
     InvalidVersion(u32),
-    #[error("globalobject does not have properties: {0}")]
-    MissingProps(u32),
+    #[error("globalobject does not have properties: {1} ({0}) {2:?}")]
+    MissingProps(u32, ObjectType, HashMap<String, String>),
     #[error("direction not valid: {0}")]
     InvalidDirection(String),
+    #[error("error with core pipewire interface: {0}")]
+    PipewireInterfaceError(#[from] pipewire::Error),
     #[cfg(debug_assertions)]
     #[error("unknown error")]
     Unknown,
 }
 
+#[derive(Debug)]
 enum PipewireMessage {
     NewGlobal(u32, ObjectType, PipewireObject),
     GlobalRemoved(u32),
@@ -121,7 +124,7 @@ pub(crate) fn mainloop(
     ps_sender: mpsc::Sender<MainloopEvents>,
     receiver: PipewireReceiver<MainloopActions>,
     state: Arc<Mutex<PipewireState>>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), PipewireError> {
     let mainloop = MainLoop::new()?;
     let context = Context::new(&mainloop)?;
     let core = context.connect(None)?;
@@ -230,7 +233,11 @@ pub(crate) fn mainloop(
                         sender.send(PipeswitchMessage::NewObject(result)).unwrap();
                     }
                 }
-                Err(e) => println!("{e}\n    {global:?}"),
+                Err(e) => {
+                    if let Some(sender) = &sender {
+                        sender.send(PipeswitchMessage::Error(e)).unwrap();
+                    }
+                }
                 _ => {}
             }
         })
