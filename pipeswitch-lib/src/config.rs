@@ -1,8 +1,11 @@
+use dirs::config_dir;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, fs, path::PathBuf, str::FromStr};
 use toml_edit::{table, Document, Item, Value};
 
 use crate::PipeswitchError;
+
+pub const DEFAULT_CONFIG_NAME: &str = "pipeswitch.conf";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -13,7 +16,10 @@ pub struct Config {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct General {
-    somelist: Option<Vec<u32>>,
+    /// keep links that dont exist in the config anymore
+    pub linger_links: bool,
+    /// inotify listen config and reload when it changes
+    pub hotreload_config: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -22,6 +28,8 @@ pub struct Link {
     pub input: NodeOrTarget,
     #[serde(rename = "out")]
     pub output: NodeOrTarget,
+    /// if false, empty port fields on both sides are never treated specially channel-wise
+    special_empty_ports: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -39,6 +47,19 @@ pub struct Target {
 }
 
 impl Config {
+    pub fn default_path() -> Option<PathBuf> {
+        config_dir().map(|dir| dir.join(DEFAULT_CONFIG_NAME))
+    }
+
+    pub fn load_from(path: &PathBuf) -> Result<(Config, Document), PipeswitchError> {
+        Ok(Config::from_string(&fs::read_to_string(path)?)?)
+    }
+
+    pub fn write_to(&self, path: &PathBuf, doc: Option<Document>) -> Result<(), PipeswitchError> {
+        let text = Config::to_string(&self, doc)?;
+        Ok(fs::write(path, text)?)
+    }
+
     pub fn to_string(&self, old_document: Option<Document>) -> Result<String, PipeswitchError> {
         let mut document = toml_edit::ser::to_document(&self)?;
         // General

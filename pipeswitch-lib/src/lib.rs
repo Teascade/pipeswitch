@@ -1,11 +1,11 @@
 use pipewire::channel::Sender as PipewireSender;
 pub use pipewire::types::ObjectType;
-pub use pw::PipewireError;
 use pw::{
     mainloop,
     types::{Link, PipewireObject, Port},
     MainloopActions, MainloopEvents, PipewireState,
 };
+pub use pw::{types, PipewireError};
 use std::{
     sync::{
         mpsc::{self},
@@ -21,13 +21,15 @@ mod pw;
 
 #[derive(Error, Debug)]
 pub enum PipeswitchError {
+    #[error("error reading or writing to disk: {0}")]
+    IOError(#[from] std::io::Error),
     #[error("error with PipeWire interface: {0}")]
     PipewireError(#[from] pw::PipewireError),
-    #[error("error reading config: {0}")]
+    #[error("error converting config: {0}")]
     TomlConvertError(#[from] toml_edit::TomlError),
-    #[error("error writing config: {0}")]
+    #[error("error serializing config: {0}")]
     TomlSerializationError(#[from] toml_edit::ser::Error),
-    #[error("error reading config: {0}")]
+    #[error("error parsing config: {0}")]
     TomlDeserializationError(#[from] toml_edit::de::Error),
     #[error("no Link Factory found!")]
     NoLinkFactory,
