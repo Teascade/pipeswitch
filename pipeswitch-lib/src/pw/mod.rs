@@ -51,7 +51,7 @@ enum PipewireMessage {
     GlobalRemoved(u32),
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct PipewireState {
     pub object_types: HashMap<u32, ObjectType>,
     pub ports: HashMap<u32, Port>,
@@ -107,6 +107,7 @@ impl PipewireState {
     }
 }
 
+#[derive(Debug)]
 pub(crate) enum MainloopActions {
     Terminate,
     CreateLink(String, Port, Port),

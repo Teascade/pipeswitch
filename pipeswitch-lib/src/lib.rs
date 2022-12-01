@@ -36,10 +36,10 @@ pub enum PipeswitchError {
     NoLinkFactory,
     #[error("failure in background thread: {0}")]
     CriticalThreadFailure(&'static str),
-    #[error("given port is not an input port: {0:?}")]
-    InvalidInputPort(Port),
-    #[error("given port is not an output port: {0:?}")]
-    InvalidOutputPort(Port),
+    #[error("given ports are both input: {0:?}, {1:?}")]
+    DoubleInputPort(Port, Port),
+    #[error("given ports are both output: {0:?}, {1:?}")]
+    DoubleOutputPort(Port, Port),
     #[cfg(debug_assertions)]
     #[error("unknown error")]
     Unknown,
@@ -88,13 +88,20 @@ impl Pipeswitch {
         self.pipewire_state.lock().unwrap()
     }
 
-    pub fn create_link(&self, output: Port, input: Port) -> Result<Option<Link>, PipeswitchError> {
-        if let types::Direction::Input = &output.direction {
-            return Err(PipeswitchError::InvalidOutputPort(output));
-        }
-        if let types::Direction::Output = &input.direction {
-            return Err(PipeswitchError::InvalidOutputPort(input));
-        }
+    pub fn create_link(&self, port1: Port, port2: Port) -> Result<Option<Link>, PipeswitchError> {
+        use types::Direction::*;
+        // Check for double inputs and double outputs
+        match (&port1.direction, &port2.direction) {
+            (Input, Input) => return Err(PipeswitchError::DoubleInputPort(port1, port2)),
+            (Output, Output) => return Err(PipeswitchError::DoubleOutputPort(port1, port2)),
+            _ => {}
+        };
+        // Flip ports if necessary
+        let (input, output) = if let Input = &port1.direction {
+            (port1, port2)
+        } else {
+            (port2, port1)
+        };
 
         let lock = self.pipewire_state.lock().unwrap();
         let factory_name = lock
@@ -106,7 +113,7 @@ impl Pipeswitch {
         drop(lock);
 
         self.sender
-            .send(MainloopActions::CreateLink(factory_name, output, input))
+            .send(MainloopActions::CreateLink(factory_name, input, output))
             .map_err(|_| PipeswitchError::CriticalThreadFailure("Failed to send create link"))
             .unwrap();
 

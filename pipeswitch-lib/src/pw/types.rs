@@ -30,7 +30,7 @@ impl Direction {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Channel {
     Left,
     Right,
@@ -60,6 +60,7 @@ impl Channel {
         })
     }
 }
+
 #[derive(Debug, Clone)]
 pub struct Port {
     pub id: PwIdType,

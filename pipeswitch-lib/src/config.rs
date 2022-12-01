@@ -30,13 +30,19 @@ pub struct Logging {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct Link {
     #[serde(rename = "in")]
     pub input: NodeOrTarget,
     #[serde(rename = "out")]
     pub output: NodeOrTarget,
     /// if false, empty port fields on both sides are never treated specially channel-wise
-    special_empty_ports: Option<bool>,
+    #[serde(default = "return_true")]
+    pub special_empty_ports: bool,
+}
+
+const fn return_true() -> bool {
+    true
 }
 
 #[derive(Serialize, Deserialize, Debug)]
