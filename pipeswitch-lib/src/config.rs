@@ -26,7 +26,7 @@ pub struct General {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Logging {
-    level: log::Level,
+    pub level: log::Level,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -78,13 +78,20 @@ impl Config {
     pub fn to_string(&self, old_document: Option<&Document>) -> Result<String, PipeswitchError> {
         let mut document = toml_edit::ser::to_document(&self)?;
         // General
-        let mut general_item = Item::Table(
+        let general_item = Item::Table(
             document
                 .remove("general")
                 .and_then(|v| v.into_table().ok())
                 .ok_or(PipeswitchError::Unknown)?,
         );
-
+        // Log
+        let log_item = Item::Table(
+            document
+                .remove("log")
+                .and_then(|v| v.into_table().ok())
+                .ok_or(PipeswitchError::Unknown)?,
+        );
+        // Link
         let mut link_item = table();
         let tableref = link_item.as_table_mut().ok_or(PipeswitchError::Unknown)?;
         tableref.set_implicit(true);
@@ -96,15 +103,14 @@ impl Config {
             let table_item = Item::Table(val.into_table().map_err(|_| PipeswitchError::Unknown)?);
             tableref.insert(&internal_string, table_item);
         }
-
-        if let Some(old_document) = old_document {
-            clone_decor(&mut general_item, old_document.get("general"));
-            clone_decor(&mut link_item, old_document.get("link"));
-            document.set_trailing(old_document.trailing());
-        }
-
+        // Insert them all
         document.insert("general", general_item);
+        document.insert("log", log_item);
         document.insert("link", link_item);
+        // Clone decor and return
+        if let Some(old_document) = old_document {
+            clone_decor(&mut document, &old_document);
+        }
         Ok(document.to_string())
     }
 
@@ -114,7 +120,14 @@ impl Config {
     }
 }
 
-pub fn clone_decor(to: &mut Item, from: Option<&Item>) {
+pub fn clone_decor(to: &mut Document, from: &Document) {
+    for (key, item) in to.iter_mut() {
+        clone_item_decor(item, from.get(&key))
+    }
+    to.set_trailing(from.trailing());
+}
+
+pub fn clone_item_decor(to: &mut Item, from: Option<&Item>) {
     use Item::*;
     if let Some(from) = from {
         match (to, from) {
@@ -124,7 +137,7 @@ pub fn clone_decor(to: &mut Item, from: Option<&Item>) {
                 for (mut key, to_item) in to_table.iter_mut() {
                     if let Some((from_key, from_item)) = from_table.get_key_value(&key) {
                         *key.decor_mut() = from_key.decor().clone();
-                        clone_decor(to_item, Some(from_item));
+                        clone_item_decor(to_item, Some(from_item));
                     }
                 }
             }
@@ -134,11 +147,22 @@ pub fn clone_decor(to: &mut Item, from: Option<&Item>) {
                     for (mut key, to_item) in to.iter_mut() {
                         if let Some((from_key, from_item)) = from.get_key_value(&key) {
                             *key.decor_mut() = from_key.decor().clone();
-                            clone_decor(to_item, Some(from_item));
+                            clone_item_decor(to_item, Some(from_item));
                         }
                     }
                 }
             }
+            // (Value(toml_edit::Value::InlineTable(to_table)), Table(from_table)) => {
+            //     for (to, from) in to_tables.iter_mut().zip(from_tables) {
+            //         *to.decor_mut() = from.decor().clone();
+            //         for (mut key, to_item) in to.iter_mut() {
+            //             if let Some((from_key, from_item)) = from.get_key_value(&key) {
+            //                 *key.decor_mut() = from_key.decor().clone();
+            //                 clone_decor(to_item, Some(from_item));
+            //             }
+            //         }
+            //     }
+            // }
             (_, _) => {}
         }
     }
