@@ -17,3 +17,7 @@ categories = ["multimedia::audio", "command-line-utilities"]
 [dependencies]
 pipeswitch-lib = { path = "../pipeswitch-lib" }
 sdl2 = "0.35.2"
+stderrlog = "0.5.4"
+log = "*"
+inotify = "0.10.0"
+regex = "1"
