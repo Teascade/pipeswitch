@@ -14,22 +14,6 @@ pub const VERSION: u32 = 3;
 type PwIdType = u32;
 
 #[derive(Debug, Clone)]
-pub struct Port {
-    pub id: PwIdType,
-    /// Usually 0 or 1
-    pub local_port_id: PwIdType,
-    pub path: Option<String>,
-    pub node_id: PwIdType,
-    pub dsp: Option<String>,
-    pub channel: Option<String>,
-    pub name: String,
-    pub direction: Direction,
-    pub alias: String,
-    pub physical: Option<bool>,
-    pub terminal: Option<bool>,
-}
-
-#[derive(Debug, Clone)]
 pub enum Direction {
     Input,
     Output,
@@ -44,6 +28,52 @@ impl Direction {
             _ => Err(PipewireError::InvalidDirection(input)),
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum Channel {
+    Left,
+    Right,
+    Mono,
+}
+
+impl Channel {
+    fn from_channel<T: Into<String>>(input: Option<T>) -> Result<Option<Self>, PipewireError> {
+        if let Some(input) = input {
+            let input = input.into();
+            Ok(Some(match input.as_str() {
+                "FL" => Channel::Left,
+                "FR" => Channel::Right,
+                "MONO" => Channel::Mono,
+                _ => Err(PipewireError::InvalidChannel(input))?,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn from_portid(input: u32) -> Result<Self, PipewireError> {
+        Ok(match input {
+            0 => Channel::Left,
+            1 => Channel::Right,
+            _ => Err(PipewireError::InvalidChannel(format!("port.id {input}")))?,
+        })
+    }
+}
+#[derive(Debug, Clone)]
+pub struct Port {
+    pub id: PwIdType,
+    /// Usually 0 or 1
+    pub local_port_id: PwIdType,
+    pub path: Option<String>,
+    pub node_id: PwIdType,
+    pub dsp: Option<String>,
+    pub channel: Channel,
+    pub name: String,
+    pub direction: Direction,
+    pub alias: String,
+    pub physical: Option<bool>,
+    pub terminal: Option<bool>,
 }
 
 impl Port {
@@ -62,13 +92,15 @@ impl Port {
                 property,
             ))
         };
+        let local_port_id = get_prop_or(*PORT_ID)?.parse()?;
         Ok(Port {
             id: global.id,
-            local_port_id: get_prop_or(*PORT_ID)?.parse()?,
+            local_port_id,
             path: get_prop(*OBJECT_PATH),
             node_id: get_prop_or(*NODE_ID)?.parse()?,
             dsp: get_prop(*FORMAT_DSP),
-            channel: get_prop(*AUDIO_CHANNEL),
+            channel: Channel::from_channel(get_prop(*AUDIO_CHANNEL))?
+                .unwrap_or(Channel::from_portid(local_port_id)?),
             name: get_prop_or(*PORT_NAME)?,
             direction: Direction::from(get_prop_or(*PORT_DIRECTION)?)?,
             alias: get_prop_or(*PORT_ALIAS)?,
@@ -82,14 +114,16 @@ impl Port {
 pub struct Node {
     pub id: PwIdType,
     pub path: Option<String>,
-    pub factory_id: PwIdType,
+    pub factory_id: Option<PwIdType>,
     pub client_id: PwIdType,
     pub device_id: Option<PwIdType>,
     pub application_name: Option<String>,
     pub node_description: Option<String>,
     pub node_name: String,
     pub node_nick: Option<String>,
-    pub media_class: String,
+    pub media_type: Option<String>,
+    pub media_category: Option<String>,
+    pub media_class: Option<String>,
     pub media_role: Option<String>,
 }
 
@@ -104,7 +138,7 @@ impl Node {
         let get_prop_or = |property| {
             get_prop(property).ok_or(PipewireError::PropNotFound(
                 global.id,
-                ObjectType::Port,
+                ObjectType::Node,
                 map_props(props),
                 property,
             ))
@@ -113,14 +147,16 @@ impl Node {
         Ok(Node {
             id: global.id,
             path: get_prop(*OBJECT_PATH),
-            factory_id: get_prop_or(*FACTORY_ID)?.parse()?,
+            factory_id: get_prop(*FACTORY_ID).map(|v| v.parse()).transpose()?,
             client_id: get_prop_or(*CLIENT_ID)?.parse()?,
             device_id: get_prop(*DEVICE_ID).map(|v| v.parse()).transpose()?,
             application_name: get_prop(*APP_NAME),
             node_description: get_prop(*NODE_DESCRIPTION),
             node_name: get_prop_or(*NODE_NAME)?,
             node_nick: get_prop(*NODE_NICK),
-            media_class: get_prop_or(*MEDIA_CLASS)?,
+            media_type: get_prop(*MEDIA_TYPE),
+            media_category: get_prop(*MEDIA_CATEGORY),
+            media_class: get_prop(*MEDIA_CLASS),
             media_role: get_prop(*MEDIA_ROLE),
         })
     }

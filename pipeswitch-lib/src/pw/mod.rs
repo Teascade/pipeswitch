@@ -36,6 +36,8 @@ pub enum PipewireError {
     MissingProps(u32, ObjectType, HashMap<String, String>),
     #[error("direction not valid: {0}")]
     InvalidDirection(String),
+    #[error("direction not valid: {0}")]
+    InvalidChannel(String),
     #[error("error with core pipewire interface: {0}")]
     PipewireInterfaceError(#[from] pipewire::Error),
     #[cfg(debug_assertions)]

@@ -4,9 +4,9 @@ pub use pipewire::types::ObjectType;
 use pw::{
     mainloop,
     types::{Link, PipewireObject, Port},
-    MainloopActions, MainloopEvents, PipewireState,
+    MainloopActions, MainloopEvents,
 };
-pub use pw::{types, PipewireError};
+pub use pw::{types, PipewireError, PipewireState};
 use std::{
     sync::{
         mpsc::{self},
