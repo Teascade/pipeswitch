@@ -1,8 +1,0 @@
-## A
-[general]
-## B
-
-## C
-[link.hello]
-in = { client = "client_1", node = "node_1" }
-out = "Hello there!"

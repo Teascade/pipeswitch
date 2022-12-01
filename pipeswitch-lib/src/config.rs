@@ -5,7 +5,8 @@ use toml_edit::{table, Document, Item, Value};
 
 use crate::PipeswitchError;
 
-pub const DEFAULT_CONFIG_NAME: &str = "pipeswitch.conf";
+const DEFAULT_CONFIG_NAME: &str = "pipeswitch.conf";
+const DEFAULT_CONFIG: &str = include_str!("default.toml");
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -49,6 +50,10 @@ pub struct Target {
 impl Config {
     pub fn default_path() -> Option<PathBuf> {
         config_dir().map(|dir| dir.join(DEFAULT_CONFIG_NAME))
+    }
+
+    pub fn default_conf() -> Result<(Config, Document), PipeswitchError> {
+        Config::from_string(DEFAULT_CONFIG)
     }
 
     pub fn load_from(path: &PathBuf) -> Result<(Config, Document), PipeswitchError> {
