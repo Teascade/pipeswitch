@@ -56,16 +56,20 @@ impl Config {
         Config::from_string(DEFAULT_CONFIG)
     }
 
-    pub fn load_from(path: &PathBuf) -> Result<(Config, Document), PipeswitchError> {
-        Ok(Config::from_string(&fs::read_to_string(path)?)?)
+    pub fn load_from(path: &PathBuf) -> Result<Option<(Config, Document)>, PipeswitchError> {
+        if !path.try_exists()? {
+            Ok(None)
+        } else {
+            Ok(Some(Config::from_string(&fs::read_to_string(path)?)?))
+        }
     }
 
-    pub fn write_to(&self, path: &PathBuf, doc: Option<Document>) -> Result<(), PipeswitchError> {
+    pub fn write_to(&self, path: &PathBuf, doc: Option<&Document>) -> Result<(), PipeswitchError> {
         let text = Config::to_string(&self, doc)?;
         Ok(fs::write(path, text)?)
     }
 
-    pub fn to_string(&self, old_document: Option<Document>) -> Result<String, PipeswitchError> {
+    pub fn to_string(&self, old_document: Option<&Document>) -> Result<String, PipeswitchError> {
         let mut document = toml_edit::ser::to_document(&self)?;
         // General
         let mut general_item = Item::Table(
