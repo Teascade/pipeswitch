@@ -36,6 +36,10 @@ pub enum PipeswitchError {
     NoLinkFactory,
     #[error("failure in background thread: {0}")]
     CriticalThreadFailure(&'static str),
+    #[error("given port is not an input port: {0:?}")]
+    InvalidInputPort(Port),
+    #[error("given port is not an output port: {0:?}")]
+    InvalidOutputPort(Port),
     #[cfg(debug_assertions)]
     #[error("unknown error")]
     Unknown,
@@ -85,6 +89,13 @@ impl Pipeswitch {
     }
 
     pub fn create_link(&self, output: Port, input: Port) -> Result<Option<Link>, PipeswitchError> {
+        if let types::Direction::Input = &output.direction {
+            return Err(PipeswitchError::InvalidOutputPort(output));
+        }
+        if let types::Direction::Output = &input.direction {
+            return Err(PipeswitchError::InvalidOutputPort(input));
+        }
+
         let lock = self.pipewire_state.lock().unwrap();
         let factory_name = lock
             .factories
