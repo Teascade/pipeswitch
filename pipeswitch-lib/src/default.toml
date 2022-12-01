@@ -5,6 +5,9 @@ linger_links = false
 # inotify listen config and reload when it changes
 hotreload_config = true
 
+[log]
+level = "trace"
+
 # Default link. You may delete me!  
 # In and out share the same syntax, both can be expressed as objects or strings.
 # Client, Node and Port are technical terms in Pipewire.  

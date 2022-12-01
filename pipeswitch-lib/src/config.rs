@@ -11,6 +11,7 @@ const DEFAULT_CONFIG: &str = include_str!("default.toml");
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub general: General,
+    pub log: Logging,
     #[serde(rename = "link")]
     pub links: HashMap<String, Link>,
 }
@@ -21,6 +22,11 @@ pub struct General {
     pub linger_links: bool,
     /// inotify listen config and reload when it changes
     pub hotreload_config: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Logging {
+    level: log::Level,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

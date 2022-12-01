@@ -1,3 +1,4 @@
+pub use log;
 use pipewire::channel::Sender as PipewireSender;
 pub use pipewire::types::ObjectType;
 use pw::{
