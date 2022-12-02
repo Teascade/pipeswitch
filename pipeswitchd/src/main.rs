@@ -8,9 +8,10 @@ use log::*;
 use pipeswitch_lib::{
     config::{Config, LinkConfig, NodeOrTarget},
     types::{Link, Object, Port},
-    Pipeswitch, PipeswitchMessage, PipewireState,
+    Pipeswitch, PipeswitchMessage, PipewireError, PipewireState,
 };
 use regex::{Regex, RegexBuilder};
+use sdl2::libc::linger;
 
 use crate::config::Event;
 
@@ -194,7 +195,7 @@ impl PipeswitchDaemon {
             if !exists {
                 let link_id = link.id;
                 if !self.linger_links && self.pipeswitch.destroy_link(link).unwrap() {
-                    warn!("old link {link_id} from old config rule [{new_rule_name}] destroyed");
+                    info!("old link {link_id} from old config rule [{new_rule_name}] destroyed");
                 }
             }
         }
@@ -212,8 +213,8 @@ impl PipeswitchDaemon {
     }
 
     fn update_config(&mut self, config: &Config) {
-        info!("rechecking config");
-        let linger_changed = self.linger_links == config.general.linger_links;
+        debug!("rechecking config");
+        let linger_changed = self.linger_links != config.general.linger_links;
         self.linger_links = config.general.linger_links;
 
         // Contains all of the rule names that still need to be checked.
@@ -227,6 +228,7 @@ impl PipeswitchDaemon {
         let mut modified_count = 0;
         let mut new_count = 0;
         let mut removed_count = 0;
+        let mut lingering_links = 0;
 
         // Go through all new and old rules and destroy any links that do not
         // match up with the new configuration.
@@ -247,7 +249,7 @@ impl PipeswitchDaemon {
                             for link in self.fetch_links(&curr.links) {
                                 let link_id = link.id;
                                 if self.pipeswitch.destroy_link(link).unwrap() {
-                                    warn!("old rule [{rule_name}] link {link_id} destroyed");
+                                    info!("old rule [{rule_name}] link {link_id} destroyed");
                                 }
                             }
                         }
@@ -262,7 +264,8 @@ impl PipeswitchDaemon {
                                     || !curr.output.matching_ports.contains(&link.output_port)
                                 {
                                     if self.pipeswitch.destroy_link(link).unwrap() {
-                                        warn!("old rule [{rule_name}] link {link_id} destroyed");
+                                        info!("old rule [{rule_name}] link {link_id} destroyed");
+                                        lingering_links += 1;
                                     }
                                 }
                             }
@@ -275,7 +278,7 @@ impl PipeswitchDaemon {
                     for link in self.fetch_links(&curr.links) {
                         let link_id = link.id;
                         if !self.linger_links && self.pipeswitch.destroy_link(link).unwrap() {
-                            warn!("old rule [{rule_name}] link {link_id} destroyed");
+                            info!("old rule [{rule_name}] link {link_id} destroyed");
                         }
                     }
                     dirty_rule_names.remove(&rule_name);
@@ -304,10 +307,15 @@ impl PipeswitchDaemon {
             }
         }
 
-        if new_count + removed_count + modified_count > 0 {
-            info!("config updated. {new_count} new, {removed_count} removed and {modified_count} modified rules.");
-        } else {
-            info!("no changes in config.");
+        let total_count = new_count + removed_count + modified_count + lingering_links;
+        if linger_changed || total_count > 0 {
+            info!("config updated");
+            if total_count > 0 {
+                info!(
+                    "{new_count} new, {removed_count} removed, {modified_count} \
+                    modified rules and {lingering_links} lingering links destroyed."
+                )
+            }
         }
     }
 
@@ -386,6 +394,7 @@ fn main() {
     stderrlog::new()
         .module(module_path!())
         .verbosity(config.log.level)
+        .timestamp(stderrlog::Timestamp::Second)
         .init()
         .unwrap();
     let (sender, receiver) = channel();
@@ -410,7 +419,11 @@ fn main() {
                     ObjectRemoved(Object::Port(port)) => daemon.port_deleted(&port),
                     ObjectRemoved(Object::Link(link)) => daemon.link_deleted(&link),
                     Error(e) => {
-                        warn!("{e}")
+                        if let PipewireError::PropNotFound(..) = e {
+                            warn!("{e}")
+                        } else {
+                            error!("{e}")
+                        }
                     }
                     _ => (),
                 }
