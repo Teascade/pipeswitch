@@ -5,7 +5,7 @@ use crate::{
 };
 use pipewire::{
     channel::Receiver as PipewireReceiver,
-    link as pwlink,
+    link::{self as pwlink},
     proxy::ProxyT,
     registry::{GlobalObject, Registry},
     spa::{AsyncSeq, ForeignDict},
@@ -24,23 +24,33 @@ use std::{
 pub enum MainloopAction {
     Terminate,
     CreateLink(String, types::Port, types::Port, String),
+    DestroyLink(types::Link),
 }
 
 #[derive(Debug)]
 pub enum MainloopEvents {
     LinkCreated(Option<types::Link>),
+    LinkDestroyed(bool),
 }
 
-struct Roundtrip(AsyncSeq, u32);
+enum Roundtrip {
+    CreateLink(AsyncSeq, u32),
+    DestroyLink(AsyncSeq),
+}
 
 type ShareableMainloopData = Arc<Mutex<MainloopData>>;
+
+struct LinkProxy {
+    proxy: pwlink::Link,
+    link: Option<types::Link>,
+    listener: Option<pwlink::LinkListener>,
+}
 
 struct MainloopData {
     mainloop: MainLoop,
     core: Core,
     pending_seq: Option<Roundtrip>,
-    link_info: HashMap<u32, types::Link>,
-    link_listeners: HashMap<u32, (pwlink::Link, pwlink::LinkListener)>,
+    links: HashMap<u32, LinkProxy>,
     event_sender: Sender<MainloopEvents>,
     message_sender: Option<Sender<PipeswitchMessage>>,
 }
@@ -58,8 +68,7 @@ impl MainloopData {
             event_sender,
             message_sender,
             pending_seq: None,
-            link_info: HashMap::default(),
-            link_listeners: HashMap::default(),
+            links: HashMap::default(),
         }
     }
 }
@@ -73,7 +82,6 @@ pub fn mainloop(
     let mainloop = MainLoop::new()?;
     let context = Context::new(&mainloop)?;
     let core = context.connect(None)?;
-
     let registry = Arc::new(core.get_registry()?);
 
     let data = Arc::new(Mutex::new(MainloopData::from(
@@ -138,10 +146,15 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData) {
                 .unwrap();
             let proxy_id = proxy.upcast_ref().id();
 
-            if let Some(info) = data_lock.link_info.get(&proxy_id) {
+            if let Some(info) = data_lock
+                .links
+                .get(&proxy_id)
+                .map(|l| l.link.clone())
+                .flatten()
+            {
                 data_lock
                     .event_sender
-                    .send(MainloopEvents::LinkCreated(Some(info.clone())))
+                    .send(MainloopEvents::LinkCreated(Some(info)))
                     .unwrap();
             } else {
                 let listener = proxy
@@ -149,18 +162,42 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData) {
                     .info({
                         let data = data.clone();
                         move |info| {
-                            data.lock()
-                                .unwrap()
-                                .link_info
-                                .insert(proxy_id, types::Link::from_link_info(info).unwrap());
+                            if let Some(link_proxy) = data.lock().unwrap().links.get_mut(&proxy_id)
+                            {
+                                link_proxy.link =
+                                    Some(types::Link::from_link_info(info, proxy_id).unwrap())
+                            }
                         }
                     })
                     .register();
-                data_lock.link_listeners.insert(proxy_id, (proxy, listener));
-                data_lock.pending_seq = Some(Roundtrip(
+                data_lock.links.insert(
+                    proxy_id,
+                    LinkProxy {
+                        proxy,
+                        link: None,
+                        listener: Some(listener),
+                    },
+                );
+                data_lock.pending_seq = Some(Roundtrip::CreateLink(
                     data_lock.core.sync(0).expect("sync failed"),
                     proxy_id,
                 ));
+            }
+        }
+        MainloopAction::DestroyLink(link) => {
+            let mut data_lock = data.lock().unwrap();
+            if let Some(proxy) = data_lock.links.remove(&link.proxy_id) {
+                if proxy.link.is_some() || proxy.listener.is_some() {
+                    data_lock
+                        .event_sender
+                        .send(MainloopEvents::LinkDestroyed(false))
+                        .unwrap();
+                    data_lock.links.insert(link.proxy_id, proxy);
+                } else {
+                    data_lock.pending_seq = Some(Roundtrip::DestroyLink(
+                        data_lock.core.destroy_object(proxy.proxy).unwrap(),
+                    ));
+                }
             }
         }
     }
@@ -171,13 +208,24 @@ fn handle_done(id: u32, seq: AsyncSeq, data: &ShareableMainloopData) {
     let mut data_lock = data.lock().unwrap();
     if id == PW_ID_CORE {
         match data_lock.pending_seq {
-            Some(Roundtrip(s, id)) => {
+            Some(Roundtrip::CreateLink(s, id)) => {
                 if s == seq {
-                    data_lock.link_listeners.remove(&id);
-                    let link = data_lock.link_info.remove(&id);
+                    if let Some(proxy) = data_lock.links.get_mut(&id) {
+                        let _listener = proxy.listener.take();
+                        let link = proxy.link.take();
+                        data_lock
+                            .event_sender
+                            .send(MainloopEvents::LinkCreated(link))
+                            .unwrap();
+                        data_lock.pending_seq = None;
+                    }
+                }
+            }
+            Some(Roundtrip::DestroyLink(s)) => {
+                if s == seq {
                     data_lock
                         .event_sender
-                        .send(MainloopEvents::LinkCreated(link))
+                        .send(MainloopEvents::LinkDestroyed(true))
                         .unwrap();
                     data_lock.pending_seq = None;
                 }
@@ -207,18 +255,27 @@ fn handle_new_global(
                             PipewireMessage::NewGlobal(
                                 info.id(),
                                 ObjectType::Link,
-                                Object::Link(types::Link::from_link_info(info).unwrap()),
+                                Object::Link(types::Link::from_link_info(info, proxy_id).unwrap()),
                             ),
                             &data,
                             &state,
                         );
                         let mut data_lock = data.lock().unwrap();
-                        data_lock.link_listeners.remove(&proxy_id);
+                        if let Some(proxy) = data_lock.links.get_mut(&proxy_id) {
+                            proxy.listener.take();
+                        }
                     }
                 })
                 .register();
             let mut data_lock = data.lock().unwrap();
-            data_lock.link_listeners.insert(proxy_id, (proxy, listener));
+            data_lock.links.insert(
+                proxy_id,
+                LinkProxy {
+                    proxy: proxy,
+                    link: None,
+                    listener: Some(listener),
+                },
+            );
         }
         _ => match Object::from_global(&global) {
             Ok(Some(obj)) => {
@@ -240,13 +297,13 @@ fn handle_new_global(
 }
 
 fn process_message(
-    new_global: PipewireMessage,
+    message: PipewireMessage,
     data: &ShareableMainloopData,
     state: &Arc<Mutex<PipewireState>>,
 ) {
     let data_lock = data.lock().unwrap();
-    let result = state.lock().unwrap().process_message(new_global);
+    let result = state.lock().unwrap().process_message(message);
     if let (Some(sender), Some(result)) = (&data_lock.message_sender, result) {
-        sender.send(PipeswitchMessage::NewObject(result)).unwrap();
+        sender.send(result).unwrap();
     }
 }

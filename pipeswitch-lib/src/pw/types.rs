@@ -175,10 +175,11 @@ pub struct Link {
     pub input_node: PwIdType,
     pub input_port: PwIdType,
     pub rule_name: Option<String>,
+    pub(crate) proxy_id: u32,
 }
 
 impl Link {
-    pub fn from_link_info(link_info: &LinkInfo) -> Result<Self, PipewireError> {
+    pub fn from_link_info(link_info: &LinkInfo, proxy_id: u32) -> Result<Self, PipewireError> {
         let props = link_info.props();
         let props = link_info.props().ok_or(PipewireError::MissingProps(
             link_info.id(),
@@ -203,6 +204,7 @@ impl Link {
             input_node: link_info.input_node_id(),
             input_port: link_info.input_port_id(),
             rule_name: get_prop(KEY_RULE_NAME),
+            proxy_id,
         })
     }
 }

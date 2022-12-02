@@ -7,6 +7,7 @@ use pw::{
 };
 pub use pw::{types, PipewireError, PipewireState};
 use std::{
+    marker::PhantomData,
     sync::{
         mpsc::{self},
         Arc, Mutex, MutexGuard,
@@ -56,6 +57,7 @@ pub struct Pipeswitch {
     sender: PipewireSender<MainloopAction>,
     mainloop_receiver: mpsc::Receiver<MainloopEvents>,
     join_handle: Option<JoinHandle<()>>,
+    nosync_phantom_data: PhantomData<std::cell::Cell<()>>,
 }
 
 impl Pipeswitch {
@@ -80,6 +82,7 @@ impl Pipeswitch {
             sender: pw_sender,
             join_handle: Some(join_handle),
             mainloop_receiver: ps_receiver,
+            nosync_phantom_data: PhantomData::default(),
         })
     }
 

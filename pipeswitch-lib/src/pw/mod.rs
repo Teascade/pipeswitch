@@ -6,6 +6,8 @@ pub(crate) mod mainloop;
 pub mod types;
 use types::VERSION;
 
+use crate::PipeswitchMessage;
+
 use self::types::{Client, Factory, Link, Node, Object, Port};
 
 #[derive(Error, Debug)]
@@ -31,7 +33,7 @@ pub enum PipewireError {
     Unknown,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum PipewireMessage {
     NewGlobal(u32, ObjectType, Object),
     GlobalRemoved(u32),
@@ -48,7 +50,7 @@ pub struct PipewireState {
 }
 
 impl PipewireState {
-    fn process_message(&mut self, message: PipewireMessage) -> Option<Object> {
+    fn process_message(&mut self, message: PipewireMessage) -> Option<PipeswitchMessage> {
         match message {
             PipewireMessage::NewGlobal(id, obj_type, object) => {
                 self.object_types.insert(id, obj_type);
@@ -63,7 +65,7 @@ impl PipewireState {
                         drop(self.factories.insert(factory.type_name.clone(), factory))
                     }
                 }
-                Some(object)
+                Some(PipeswitchMessage::NewObject(object))
             }
             PipewireMessage::GlobalRemoved(id) => {
                 if let Some(obj_type) = self.object_types.get(&id) {
@@ -74,6 +76,7 @@ impl PipewireState {
                         ObjectType::Client => self.clients.remove(&id).map(|c| Object::Client(c)),
                         _ => None,
                     }
+                    .map(|obj| PipeswitchMessage::ObjectRemoved(obj))
                 } else {
                     None
                 }
