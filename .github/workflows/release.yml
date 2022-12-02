@@ -1,0 +1,32 @@
+name: release
+
+# on:
+#   release:
+#     types: [published]
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Build
+      run: cargo build --release
+    - name: Post-process
+      run: |
+        strip target/release/pipeswitchd
+        mv target/release/pipeswitchd pipeswitchd
+        zip pipeswitchd.zip pipeswitchd
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: pipeswitchd.zip
+        path: pipeswitchd.zip
