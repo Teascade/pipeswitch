@@ -24,8 +24,10 @@ jobs:
     - name: Post-process
       run: |
         strip target/release/pipeswitchd
-        mv target/release/pipeswitchd pipeswitchd
+        cd target/release/pipeswitchd
         zip pipeswitchd.zip pipeswitchd
+        cd ../../
+        mv target/release/pipeswitchd.zip pipeswitchd.zip
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
