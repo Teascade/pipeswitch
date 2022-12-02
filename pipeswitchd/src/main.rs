@@ -6,7 +6,7 @@ use std::{
 use config::{load_config_or_default, start_pipeswitch_thread, ConfigListener};
 use log::*;
 use pipeswitch_lib::{
-    config::{Config, NodeOrTarget},
+    config::{Config, LinkConfig, NodeOrTarget},
     types::{Link, Object, Port},
     Pipeswitch, PipeswitchMessage, PipewireState,
 };
@@ -24,6 +24,13 @@ struct Rule {
     port: Option<Regex>,
     matching_ports: HashSet<u32>,
     special_empty_ports: bool,
+    original_config: NodeOrTarget,
+}
+
+impl PartialEq for Rule {
+    fn eq(&self, other: &Self) -> bool {
+        self.original_config == other.original_config
+    }
 }
 
 impl Rule {
@@ -41,6 +48,7 @@ impl Rule {
                 port: None,
                 matching_ports: HashSet::new(),
                 special_empty_ports: special,
+                original_config: node_or_target.clone(),
             },
             NodeOrTarget::Target(t) => Rule {
                 name,
@@ -64,6 +72,7 @@ impl Rule {
                 }),
                 matching_ports: HashSet::new(),
                 special_empty_ports: special,
+                original_config: node_or_target.clone(),
             },
         }
     }
@@ -139,6 +148,17 @@ struct LinkRules {
     links: HashSet<u32>,
 }
 
+impl From<(String, LinkConfig)> for LinkRules {
+    fn from((name, cfg): (String, LinkConfig)) -> Self {
+        LinkRules {
+            name: name.clone(),
+            input: Rule::from_node_or_target(name.clone(), cfg.special_empty_ports, &cfg.input),
+            output: Rule::from_node_or_target(name.clone(), cfg.special_empty_ports, &cfg.output),
+            links: HashSet::new(),
+        }
+    }
+}
+
 struct PipeswitchDaemon {
     rules: HashMap<String, LinkRules>,
     pipeswitch: Pipeswitch,
@@ -166,66 +186,100 @@ impl PipeswitchDaemon {
             if !exists {
                 let link_id = link.id;
                 if self.pipeswitch.destroy_link(link).unwrap() {
-                    warn!("Old link {link_id} from rule [{new_rule_name}] destroyed!");
+                    warn!("old link {link_id} from old config rule [{new_rule_name}] destroyed");
                 }
             }
         }
+    }
+
+    fn fetch_links<'a, T: IntoIterator<Item = &'a u32>>(&self, link_ids: T) -> Vec<Link> {
+        let mut links = Vec::new();
+        for link_id in link_ids.into_iter() {
+            let state = self.pipeswitch.lock_current_state();
+            if let Some(link) = state.links.get(&link_id) {
+                links.push(link.clone());
+            }
+        }
+        links
     }
 
     fn update_config(&mut self, config: &Config) {
-        debug!("Updating config");
-        // TODO: Check for any new link names or deleted ones. Destroy links for
-        // deleted links.
-        for (name, link) in &config.links {
-            let rules = LinkRules {
-                name: name.clone(),
-                input: Rule::from_node_or_target(
-                    name.clone(),
-                    link.special_empty_ports,
-                    &link.input,
-                ),
-                output: Rule::from_node_or_target(
-                    name.clone(),
-                    link.special_empty_ports,
-                    &link.output,
-                ),
-                links: HashSet::new(),
-            };
-            debug!("New link: {name}");
-            debug!("{rules:?}");
-            self.rules.insert(name.clone(), rules);
+        info!("Updating config..");
+
+        // Contains all of the rule names that still need to be checked.
+        let mut dirty_rule_names: HashSet<String> = self
+            .rules
+            .keys()
+            .chain(config.links.keys())
+            .cloned()
+            .collect();
+
+        // Go through all new and old rules and destroy any links that do not
+        // match up with the new configuration.
+        for rule_name in dirty_rule_names.clone() {
+            let curr_rule = self.rules.get(&rule_name);
+            let new_rule = config
+                .links
+                .get(&rule_name)
+                .map(|c| LinkRules::from((rule_name.clone(), c.clone())));
+
+            match (curr_rule, new_rule) {
+                (Some(curr), Some(new)) => {
+                    if new.input != curr.input || new.output != curr.output {
+                        debug!("rule [{rule_name}] changed, removing links temporarily");
+                        let mut links = Vec::new();
+                        for link_id in &curr.links {
+                            let state = self.pipeswitch.lock_current_state();
+                            if let Some(link) = state.links.get(link_id) {
+                                links.push(link.clone());
+                            }
+                        }
+                        for link in self.fetch_links(&curr.links) {
+                            let link_id = link.id;
+                            if self.pipeswitch.destroy_link(link).unwrap() {
+                                trace!(
+                                    "old rule [{rule_name}] link {link_id} temporarily destroyed"
+                                );
+                            }
+                        }
+                        self.rules.insert(rule_name, new);
+                    } else {
+                        debug!("rule [{rule_name}] was unmodified");
+                        dirty_rule_names.remove(&rule_name);
+                    }
+                }
+                (Some(curr), None) => {
+                    for link in self.fetch_links(&curr.links) {
+                        let link_id = link.id;
+                        if self.pipeswitch.destroy_link(link).unwrap() {
+                            trace!("old rule [{rule_name}] link {link_id} destroyed");
+                        }
+                    }
+                    dirty_rule_names.remove(&rule_name);
+                }
+                (None, Some(new)) => {
+                    self.rules.insert(rule_name, new);
+                }
+                _ => {}
+            }
         }
-        // TODO: After checking for link-name differences, go through all links,
-        // clear the port-cache and re-create port caches by going through all
-        // ports again. If any differences emerge, destroy all related links and
-        // re-form them.
+
+        let ports: Vec<Port> = self
+            .pipeswitch
+            .lock_current_state()
+            .ports
+            .values()
+            .cloned()
+            .collect();
+
+        // Goes through all the rule_names that still need to have their ports checked
+        for port in ports {
+            self.new_port_for_rules(port, dirty_rule_names.clone());
+        }
     }
 
     fn new_port(&mut self, port: Port) {
-        use pipeswitch_lib::types::Direction;
-        let mut state = self.pipeswitch.lock_current_state();
-        for rule in self.rules.values_mut() {
-            let (r1, r2) = if let Direction::Input = port.direction {
-                (&mut rule.input, &mut rule.output)
-            } else {
-                (&mut rule.output, &mut rule.input)
-            };
-            if r1.add_if_matches(&port, &state) {
-                for old_port_id in &r2.matching_ports {
-                    let old_port = state.ports.get(old_port_id).unwrap().clone();
-                    if r1.ignore_channel(&r2) || port.channel == old_port.channel {
-                        let np_name = &port.alias;
-                        let op_name = &old_port.alias;
-                        info!("{np_name} should connect to {op_name}");
-                        drop(state);
-                        self.pipeswitch
-                            .create_link(port.clone(), old_port, rule.name.clone())
-                            .unwrap();
-                        state = self.pipeswitch.lock_current_state();
-                    }
-                }
-            }
-        }
+        self.new_port_for_rules(port, self.rules.keys().cloned().collect())
     }
 
     fn port_deleted(&mut self, port: &Port) {
@@ -250,6 +304,33 @@ impl PipeswitchDaemon {
             if rule.links.remove(&id) {
                 let rule_name = &rule.name;
                 trace!("Link {id} from rule [{rule_name}] deleted");
+            }
+        }
+    }
+
+    fn new_port_for_rules(&mut self, port: Port, rules: HashSet<String>) {
+        use pipeswitch_lib::types::Direction;
+        let mut state = self.pipeswitch.lock_current_state();
+        for (_, rule) in self.rules.iter_mut().filter(|(n, _)| rules.contains(*n)) {
+            let (r1, r2) = if let Direction::Input = port.direction {
+                (&mut rule.input, &mut rule.output)
+            } else {
+                (&mut rule.output, &mut rule.input)
+            };
+            if r1.add_if_matches(&port, &state) {
+                for old_port_id in &r2.matching_ports {
+                    let old_port = state.ports.get(old_port_id).unwrap().clone();
+                    if r1.ignore_channel(&r2) || port.channel == old_port.channel {
+                        let np_name = &port.alias;
+                        let op_name = &old_port.alias;
+                        info!("Connecting {np_name} to {op_name}");
+                        drop(state);
+                        self.pipeswitch
+                            .create_link(port.clone(), old_port, rule.name.clone())
+                            .unwrap();
+                        state = self.pipeswitch.lock_current_state();
+                    }
+                }
             }
         }
     }
@@ -288,8 +369,7 @@ fn main() {
             }
             Event::ConfigModified(conf) => {
                 daemon.update_config(&conf);
-                trace!("Shutting down..");
-                break;
+                dbg!("hello??");
             }
         }
     }

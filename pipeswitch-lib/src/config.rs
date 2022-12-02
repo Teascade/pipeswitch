@@ -29,7 +29,7 @@ pub struct Logging {
     pub level: log::Level,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct LinkConfig {
     #[serde(rename = "in")]
@@ -45,14 +45,14 @@ const fn return_true() -> bool {
     true
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum NodeOrTarget {
     NodeName(String),
     Target(Target),
 }
 
-#[derive(Serialize, Default, Deserialize, Debug)]
+#[derive(Serialize, Default, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Target {
     pub client: Option<String>,
     pub node: Option<String>,
