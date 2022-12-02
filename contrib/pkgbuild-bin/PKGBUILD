@@ -1,6 +1,6 @@
 # Maintainer: Sofia Talarmo <sofia@teascade.net>
 pkgname=pipeswitchd-bin
-pkgver=0.1.2
+pkgver=1.0.0
 pkgrel=1
 pkgdesc="Daemon for PipeWire that automatically links audio inputs and outputs based on regular expressions, similar to patchbay."
 arch=('x86_64')
