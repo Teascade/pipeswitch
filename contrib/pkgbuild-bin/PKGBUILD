@@ -14,4 +14,5 @@ sha512sums=('fd88f90bb7550d892df79979665749f5a6da823db06d8d49a7e7b37fa5afb0f429b
 
 package() {
   install -Dm755 "${srcdir}/pipeswitchd" "${pkgdir}/usr/bin/pipeswitchd"
+  install -Dm755 "${srcdir}/pipeswitchd.service" "${pkgdir}/usr/lib/systemd/user/pipeswitchd.service"
 }
