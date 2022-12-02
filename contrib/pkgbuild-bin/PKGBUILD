@@ -10,7 +10,7 @@ depends=('pipewire')
 provides=("pipeswitchd")
 conflicts=("pipeswitchd")
 source=("${url}/releases/download/v${pkgver}/pipeswitchd.zip")
-sha512sums=('cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e')
+sha512sums=('fd88f90bb7550d892df79979665749f5a6da823db06d8d49a7e7b37fa5afb0f429bb3e2199dfb7a8b6e667857e569c1d002c06bb44adb7a83befbed9c69ee2af')
 
 package() {
   install -Dm755 "${srcdir}/pipeswitchd" "${pkgdir}/usr/bin/pipeswitchd"
