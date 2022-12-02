@@ -284,7 +284,7 @@ impl Factory {
 }
 
 #[derive(Clone, Debug)]
-pub enum PipewireObject {
+pub enum Object {
     Port(Port),
     Node(Node),
     Link(Link),
@@ -292,7 +292,7 @@ pub enum PipewireObject {
     Factory(Factory),
 }
 
-impl PipewireObject {
+impl Object {
     pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Option<Self>, PipewireError> {
         if global.version != VERSION {
             Err(PipewireError::InvalidVersion(global.version))?

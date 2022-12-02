@@ -13,7 +13,7 @@ pub struct Config {
     pub general: General,
     pub log: Logging,
     #[serde(rename = "link")]
-    pub links: HashMap<String, Link>,
+    pub links: HashMap<String, LinkConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -31,7 +31,7 @@ pub struct Logging {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct Link {
+pub struct LinkConfig {
     #[serde(rename = "in")]
     pub input: NodeOrTarget,
     #[serde(rename = "out")]

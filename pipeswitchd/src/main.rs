@@ -7,7 +7,7 @@ use config::{load_config_or_default, start_pipeswitch_thread, ConfigListener};
 use log::*;
 use pipeswitch_lib::{
     config::{Config, NodeOrTarget},
-    types::{Link, PipewireObject, Port},
+    types::{Link, Object, Port},
     Pipeswitch, PipeswitchMessage, PipewireState,
 };
 use regex::{Regex, RegexBuilder};
@@ -265,9 +265,9 @@ fn main() {
             Event::Pipeswitch(pw) => {
                 use PipeswitchMessage::*;
                 match pw {
-                    NewObject(PipewireObject::Port(port)) => daemon.new_port(port),
-                    NewObject(PipewireObject::Link(link)) => daemon.new_link(link),
-                    ObjectRemoved(PipewireObject::Port(port)) => daemon.port_deleted(&port),
+                    NewObject(Object::Port(port)) => daemon.new_port(port),
+                    NewObject(Object::Link(link)) => daemon.new_link(link),
+                    ObjectRemoved(Object::Port(port)) => daemon.port_deleted(&port),
                     Error(e) => {
                         warn!("{e}")
                     }
@@ -281,55 +281,4 @@ fn main() {
             }
         }
     }
-
-    // let (sender, receiver) = channel();
-
-    // let ps = Pipeswitch::new(None).unwrap();
-    // sdl2_signaller::open_window_thread(sender);
-
-    // while let Ok(keycode) = receiver.recv() {
-    //     println!("starting");
-    //     let state = ps.lock_current_state();
-    //     println!("Current nodes:");
-    //     let mut output = None;
-    //     let mut input = None;
-    //     let mut name = "spotify";
-    //     if keycode == Keycode::A {
-    //         name = "Firefox"
-    //     }
-    //     for (node_id, node) in &state.nodes {
-    //         let node_name = &node.node_name;
-    //         let ports = state.ports_by_node(*node_id);
-    //         let names: Vec<&String> = state
-    //             .ports_by_node(*node_id)
-    //             .into_iter()
-    //             .map(|p| &p.name)
-    //             .collect();
-    //         println!("Node {node_id} '{node_name}' with ports {names:?}");
-    //         if node.node_name == "WEBRTC VoiceEngine" {
-    //             for port in &ports {
-    //                 if port.name == "input_MONO" {
-    //                     input = Some((*port).clone());
-    //                 }
-    //             }
-    //         }
-    //         if node.node_name == name {
-    //             for port in &ports {
-    //                 if port.name == "output_FR" {
-    //                     output = Some((*port).clone());
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     drop(state);
-
-    //     if let (Some(o), Some(i)) = (output, input) {
-    //         let link = ps.create_link(o, i, "hellothere".to_owned()).unwrap();
-    //         println!("{link:?}");
-    //     }
-
-    //     if keycode == Keycode::Escape {
-    //         break;
-    //     }
-    // }
 }

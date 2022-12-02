@@ -2,9 +2,8 @@ pub use log;
 use pipewire::channel::Sender as PipewireSender;
 pub use pipewire::types::ObjectType;
 use pw::{
-    mainloop,
-    types::{Link, PipewireObject, Port},
-    MainloopActions, MainloopEvents,
+    mainloop::{mainloop, MainloopAction, MainloopEvents},
+    types::{Link, Object, Port},
 };
 pub use pw::{types, PipewireError, PipewireState};
 use std::{
@@ -47,14 +46,14 @@ pub enum PipeswitchError {
 
 #[derive(Debug)]
 pub enum PipeswitchMessage {
-    NewObject(PipewireObject),
-    ObjectRemoved(PipewireObject),
+    NewObject(Object),
+    ObjectRemoved(Object),
     Error(pw::PipewireError),
 }
 
 pub struct Pipeswitch {
     pipewire_state: Arc<Mutex<PipewireState>>,
-    sender: PipewireSender<MainloopActions>,
+    sender: PipewireSender<MainloopAction>,
     mainloop_receiver: mpsc::Receiver<MainloopEvents>,
     join_handle: Option<JoinHandle<()>>,
 }
@@ -64,7 +63,7 @@ impl Pipeswitch {
         let pipewire_state = Arc::new(Mutex::new(PipewireState::default()));
 
         let (ps_sender, ps_receiver) = mpsc::channel();
-        let (pw_sender, pw_receiver) = pipewire::channel::channel::<MainloopActions>();
+        let (pw_sender, pw_receiver) = pipewire::channel::channel::<MainloopAction>();
 
         let state_clone = pipewire_state.clone();
 
@@ -118,7 +117,7 @@ impl Pipeswitch {
         drop(lock);
 
         self.sender
-            .send(MainloopActions::CreateLink(
+            .send(MainloopAction::CreateLink(
                 factory_name,
                 output,
                 input,
@@ -138,7 +137,7 @@ impl Pipeswitch {
 
 impl Drop for Pipeswitch {
     fn drop(&mut self) {
-        let _ = self.sender.send(MainloopActions::Terminate);
+        let _ = self.sender.send(MainloopAction::Terminate);
         if let Some(handle) = self.join_handle.take() {
             handle
                 .join()
