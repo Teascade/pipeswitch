@@ -11,6 +11,24 @@ by implementing listeners similar to those provided by `pw-link`.
 If you're looking for an interactive albeit non-automatic graph GUI for
 PipeWire, you might want to check out [Helvum][helvum]
 
+## Installation
+
+### Not ArchLinux
+Unfortunately there are no other packages available right away, but luckily
+Pipeswitch is a simple binary, so you should be able to just grab the
+`.zip` from the release and boot the binary right up.
+
+On top of that if you place the binary in `~/.local/bin/pipeswitchd`, you should be
+able to use the service provided as well right away, for example by placing it
+in `~/.config/systemd/user/pipeswitchd.service`.
+
+### ArchLinux
+Arch users can simply install `pipeswitchd` or `pipeswitchd-bin` from
+[AUR][aur-search], and then enable the `pipeswitchd`-service, ie. by running 
+```
+systemctl --user enable pipeswitchd
+```
+
 ## Features
 - Works as a single service running in the system background
 - Lightning fast
@@ -75,3 +93,4 @@ This project is licensed under the [GNU General Public License v3](./LICENSE)
 [qjackctl]: https://qjackctl.sourceforge.io/
 [helvum]: https://gitlab.freedesktop.org/pipewire/helvum
 [pipewire-bindings]: https://crates.io/crates/pipewire
+[aur-search]: https://aur.archlinux.org/packages?K=pipeswitchd
