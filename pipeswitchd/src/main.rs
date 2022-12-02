@@ -173,6 +173,7 @@ impl PipeswitchDaemon {
             debug!("{rules:?}");
             self.rules.insert(name.clone(), rules);
         }
+        // TODO: Go through all rules/ports/links again!
     }
 
     fn new_port(&mut self, port: Port) {
