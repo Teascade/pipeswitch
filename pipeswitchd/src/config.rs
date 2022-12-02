@@ -3,7 +3,7 @@ use inotify::{Inotify, WatchMask};
 use log::*;
 use pipeswitch_lib::config::Config;
 use pipeswitch_lib::{Pipeswitch, PipeswitchMessage};
-use std::path::PathBuf;
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
@@ -15,7 +15,7 @@ pub enum Event {
     ConfigModified(Config),
 }
 
-pub fn load_config_or_default(path: &PathBuf) -> Result<Config> {
+pub fn load_config_or_default(path: &Path) -> Result<Config> {
     Ok(if let Some((conf, _)) = Config::load_from(path)? {
         trace!("Found existing config");
         conf
@@ -33,12 +33,12 @@ pub struct ConfigListener {
 }
 
 impl ConfigListener {
-    pub fn start(path: &PathBuf, sender: Sender<Event>) -> ConfigListener {
+    pub fn start(path: &Path, sender: Sender<Event>) -> ConfigListener {
         let running = Arc::new(AtomicBool::new(true));
 
         let join_handle = std::thread::spawn({
             let running = running.clone();
-            let path = path.clone();
+            let path = path.to_owned();
             move || {
                 let mut inotify =
                     Inotify::init().expect("Error while initializing inotify instance");

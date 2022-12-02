@@ -40,7 +40,7 @@ impl Rule {
                 name,
                 client: None,
                 node: Some(
-                    RegexBuilder::new(&node_name)
+                    RegexBuilder::new(node_name)
                         .case_insensitive(true)
                         .build()
                         .unwrap(),
@@ -53,19 +53,19 @@ impl Rule {
             NodeOrTarget::Target(t) => Rule {
                 name,
                 client: t.client.as_ref().map(|rex| {
-                    RegexBuilder::new(&rex)
+                    RegexBuilder::new(rex)
                         .case_insensitive(true)
                         .build()
                         .unwrap()
                 }),
                 node: t.node.as_ref().map(|rex| {
-                    RegexBuilder::new(&rex)
+                    RegexBuilder::new(rex)
                         .case_insensitive(true)
                         .build()
                         .unwrap()
                 }),
                 port: t.port.as_ref().map(|rex| {
-                    RegexBuilder::new(&rex)
+                    RegexBuilder::new(rex)
                         .case_insensitive(true)
                         .build()
                         .unwrap()
@@ -85,24 +85,24 @@ fn matches_entirely(regex: &Regex, text: &str) -> Option<bool> {
 impl Rule {
     fn add_if_matches(&mut self, port: &Port, state: &PipewireState) -> bool {
         let port_matches = match &self.port {
-            Some(regex) => matches_entirely(&regex, &port.name).unwrap_or(false),
+            Some(regex) => matches_entirely(regex, &port.name).unwrap_or(false),
             _ => true,
         };
 
         if port_matches {
             let node = state.nodes.get(&port.node_id);
-            let client = node.map(|n| state.clients.get(&n.client_id)).flatten();
+            let client = node.and_then(|n| state.clients.get(&n.client_id));
 
             let node_matches = match (&self.node, node) {
                 (Some(regex), Some(node)) => {
-                    matches_entirely(&regex, &node.node_name).unwrap_or(false)
+                    matches_entirely(regex, &node.node_name).unwrap_or(false)
                 }
                 (Some(_), None) => false,
                 _ => true,
             };
             let client_matches = match (&self.client, client) {
                 (Some(regex), Some(client)) => {
-                    matches_entirely(&regex, &client.application_name).unwrap_or(false)
+                    matches_entirely(regex, &client.application_name).unwrap_or(false)
                 }
                 (Some(_), None) => false,
                 _ => true,
@@ -153,7 +153,7 @@ impl From<(String, LinkConfig)> for LinkRules {
         LinkRules {
             name: name.clone(),
             input: Rule::from_node_or_target(name.clone(), cfg.special_empty_ports, &cfg.input),
-            output: Rule::from_node_or_target(name.clone(), cfg.special_empty_ports, &cfg.output),
+            output: Rule::from_node_or_target(name, cfg.special_empty_ports, &cfg.output),
             links: HashSet::new(),
         }
     }
@@ -180,15 +180,14 @@ impl PipeswitchDaemon {
         if let Some(new_rule_name) = link.rule_name.clone() {
             let mut exists = false;
             for (rule_name, rule) in self.rules.iter_mut() {
-                if new_rule_name == *rule_name {
-                    if rule.input.matching_ports.contains(&link.input_port)
-                        && rule.output.matching_ports.contains(&link.output_port)
-                    {
-                        rule.links.insert(link.id);
-                        let link_id = link.id;
-                        trace!("New link {link_id} for rule [{rule_name}]");
-                        exists = true;
-                    }
+                if new_rule_name == *rule_name
+                    && rule.input.matching_ports.contains(&link.input_port)
+                    && rule.output.matching_ports.contains(&link.output_port)
+                {
+                    rule.links.insert(link.id);
+                    let link_id = link.id;
+                    trace!("New link {link_id} for rule [{rule_name}]");
+                    exists = true;
                 }
             }
             if !exists {
@@ -204,7 +203,7 @@ impl PipeswitchDaemon {
         let mut links = Vec::new();
         for link_id in link_ids.into_iter() {
             let state = self.pipeswitch.lock_current_state();
-            if let Some(link) = state.links.get(&link_id) {
+            if let Some(link) = state.links.get(link_id) {
                 links.push(link.clone());
             }
         }
@@ -259,13 +258,12 @@ impl PipeswitchDaemon {
                             info!("deleting old lingered links");
                             for link in self.fetch_links(&curr.links) {
                                 let link_id = link.id;
-                                if !curr.input.matching_ports.contains(&link.input_port)
-                                    || !curr.output.matching_ports.contains(&link.output_port)
+                                if (!curr.input.matching_ports.contains(&link.input_port)
+                                    || !curr.output.matching_ports.contains(&link.output_port))
+                                    && self.pipeswitch.destroy_link(link).unwrap()
                                 {
-                                    if self.pipeswitch.destroy_link(link).unwrap() {
-                                        info!("old rule [{rule_name}] link {link_id} destroyed");
-                                        lingering_links += 1;
-                                    }
+                                    info!("old rule [{rule_name}] link {link_id} destroyed");
+                                    lingering_links += 1;
                                 }
                             }
                         }
@@ -300,7 +298,7 @@ impl PipeswitchDaemon {
             .collect();
 
         // Goes through all the rule_names that still need to have their ports checked
-        if dirty_rule_names.len() > 0 {
+        if dirty_rule_names.is_empty() {
             for port in ports {
                 self.new_port_for_rules(port, dirty_rule_names.clone());
             }
@@ -319,9 +317,9 @@ impl PipeswitchDaemon {
         if lingering_links > 0 {
             messages.push(format!("{lingering_links} lingering links destroyed"))
         }
-        if linger_changed || messages.len() > 0 {
+        if linger_changed || messages.is_empty() {
             let mut message = vec!["config updated".to_owned()];
-            if messages.len() > 0 {
+            if messages.is_empty() {
                 message.push(messages.join(", "))
             }
             info!("{}", message.join(": "));
@@ -370,7 +368,7 @@ impl PipeswitchDaemon {
             if r1.add_if_matches(&port, &state) {
                 for old_port_id in &r2.matching_ports {
                     let old_port = state.ports.get(old_port_id).unwrap().clone();
-                    if r1.ignore_channel(&r2) || port.channel == old_port.channel {
+                    if r1.ignore_channel(r2) || port.channel == old_port.channel {
                         let op_alias = old_port.alias.clone();
                         let (i_name, o_name) = if let Direction::Input = port.direction {
                             (&port.alias, &op_alias)
@@ -396,7 +394,7 @@ impl PipeswitchDaemon {
 
 fn main() {
     let config_path = &Config::default_path().unwrap();
-    let config = load_config_or_default(&config_path)
+    let config = load_config_or_default(config_path)
         .map_err(|e| panic!("Failed to load Config at startup: {e}"))
         .unwrap();
 
@@ -415,7 +413,7 @@ fn main() {
 
     let mut _listener = None;
     if config.general.hotreload_config {
-        _listener = Some(ConfigListener::start(&config_path, sender.clone()));
+        _listener = Some(ConfigListener::start(config_path, sender));
     }
 
     while let Ok(event) = receiver.recv() {
