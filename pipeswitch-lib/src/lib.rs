@@ -129,12 +129,24 @@ impl Pipeswitch {
             .map_err(|_| PipeswitchError::CriticalThreadFailure("Failed to send create link"))
             .unwrap();
 
-        let link = loop {
+        Ok(loop {
             if let Ok(MainloopEvents::LinkCreated(link)) = self.mainloop_receiver.recv() {
                 break link;
             }
-        };
-        Ok(link)
+        })
+    }
+
+    pub fn destroy_link(&self, link: Link) -> Result<bool, PipeswitchError> {
+        self.sender
+            .send(MainloopAction::DestroyLink(link))
+            .map_err(|_| PipeswitchError::CriticalThreadFailure("Failed to send destroy link"))
+            .unwrap();
+
+        Ok(loop {
+            if let Ok(MainloopEvents::LinkDestroyed(success)) = self.mainloop_receiver.recv() {
+                break success;
+            }
+        })
     }
 }
 

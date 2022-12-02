@@ -41,7 +41,7 @@ enum Roundtrip {
 type ShareableMainloopData = Arc<Mutex<MainloopData>>;
 
 struct LinkProxy {
-    proxy: pwlink::Link,
+    _proxy: pwlink::Link,
     link: Option<types::Link>,
     listener: Option<pwlink::LinkListener>,
 }
@@ -93,8 +93,9 @@ pub fn mainloop(
 
     let _rec = receiver.attach(&mainloop, {
         let data = data.clone();
+        let registry = registry.clone();
         // Called when Pipeswitch sends an event
-        move |action| handle_action(action, &data)
+        move |action| handle_action(action, &data, &registry)
     });
     let _listener_core = core
         .add_listener_local()
@@ -127,7 +128,7 @@ pub fn mainloop(
 }
 
 /// Called when an action is called from the Pipeswitch-struct
-fn handle_action(action: MainloopAction, data: &ShareableMainloopData) {
+fn handle_action(action: MainloopAction, data: &ShareableMainloopData, registry: &Registry) {
     match action {
         MainloopAction::Terminate => data.lock().unwrap().mainloop.quit(),
         MainloopAction::CreateLink(factory_name, output, input, rule_name) => {
@@ -173,7 +174,7 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData) {
                 data_lock.links.insert(
                     proxy_id,
                     LinkProxy {
-                        proxy,
+                        _proxy: proxy,
                         link: None,
                         listener: Some(listener),
                     },
@@ -194,8 +195,9 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData) {
                         .unwrap();
                     data_lock.links.insert(link.proxy_id, proxy);
                 } else {
+                    registry.destroy_global(link.id);
                     data_lock.pending_seq = Some(Roundtrip::DestroyLink(
-                        data_lock.core.destroy_object(proxy.proxy).unwrap(),
+                        data_lock.core.sync(0).expect("sync failed"),
                     ));
                 }
             }
@@ -271,7 +273,7 @@ fn handle_new_global(
             data_lock.links.insert(
                 proxy_id,
                 LinkProxy {
-                    proxy: proxy,
+                    _proxy: proxy,
                     link: None,
                     listener: Some(listener),
                 },
