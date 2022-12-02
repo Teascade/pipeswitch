@@ -153,7 +153,7 @@ impl PipeswitchDaemon {
     }
 
     fn new_link(&mut self, link: Link) {
-        if let Some(new_rule_name) = link.rule_name {
+        if let Some(new_rule_name) = link.rule_name.clone() {
             let mut exists = false;
             for (rule_name, rule) in self.rules.iter_mut() {
                 if new_rule_name == *rule_name {
@@ -165,8 +165,9 @@ impl PipeswitchDaemon {
             }
             if !exists {
                 let link_id = link.id;
-                warn!("Link {link_id} from rule [{new_rule_name}] must be destroyed!");
-                // TODO: Make destroying links possible
+                if self.pipeswitch.destroy_link(link).unwrap() {
+                    warn!("Old link {link_id} from rule [{new_rule_name}] destroyed!");
+                }
             }
         }
     }
@@ -242,6 +243,16 @@ impl PipeswitchDaemon {
             }
         }
     }
+
+    fn link_deleted(&mut self, link: &Link) {
+        for rule in self.rules.values_mut() {
+            let id = link.id;
+            if rule.links.remove(&id) {
+                let rule_name = &rule.name;
+                trace!("Link {id} from rule [{rule_name}] deleted");
+            }
+        }
+    }
 }
 
 fn main() {
@@ -268,6 +279,7 @@ fn main() {
                     NewObject(Object::Port(port)) => daemon.new_port(port),
                     NewObject(Object::Link(link)) => daemon.new_link(link),
                     ObjectRemoved(Object::Port(port)) => daemon.port_deleted(&port),
+                    ObjectRemoved(Object::Link(link)) => daemon.link_deleted(&link),
                     Error(e) => {
                         warn!("{e}")
                     }
