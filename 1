@@ -1,0 +1,2847 @@
+warning: unused imports: `ConfigListener`, `start_pipeswitch_thread`
+ --> pipeswitchd/src/main.rs:7:38
+  |
+7 | use config::{load_config_or_default, start_pipeswitch_thread, ConfigListener};
+  |                                      ^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `PipeswitchMessage`, `PipewireObject`
+  --> pipeswitchd/src/main.rs:11:13
+   |
+11 |     types::{PipewireObject, Port},
+   |             ^^^^^^^^^^^^^^
+12 |     Pipeswitch, PipeswitchMessage, PipewireState,
+   |                 ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::config::Event`
+  --> pipeswitchd/src/main.rs:17:5
+   |
+17 | use crate::config::Event;
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `name`, `client`, `node`, `port`, `matching_ports` and `special_empty_ports` are never read
+  --> pipeswitchd/src/main.rs:23:5
+   |
+22 | struct Rule {
+   |        ---- fields in this struct
+23 |     name: String,
+   |     ^^^^
+24 |     client: Option<Regex>,
+   |     ^^^^^^
+25 |     node: Option<Regex>,
+   |     ^^^^
+26 |     port: Option<Regex>,
+   |     ^^^^
+27 |     matching_ports: HashSet<u32>,
+   |     ^^^^^^^^^^^^^^
+28 |     special_empty_ports: bool,
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+   = note: `Rule` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: function `matches_entirely` is never used
+  --> pipeswitchd/src/main.rs:53:4
+   |
+53 | fn matches_entirely(regex: &Regex, text: &str) -> Option<bool> {
+   |    ^^^^^^^^^^^^^^^^
+
+warning: fields `input`, `output` and `links` are never read
+   --> pipeswitchd/src/main.rs:118:5
+    |
+117 | struct LinkRules {
+    |        --------- fields in this struct
+118 |     input: Rule,
+    |     ^^^^^
+119 |     output: Rule,
+    |     ^^^^^^
+120 |     links: HashSet<u32>,
+    |     ^^^^^
+    |
+    = note: `LinkRules` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: struct `PipeswitchDaemon` is never constructed
+   --> pipeswitchd/src/main.rs:123:8
+    |
+123 | struct PipeswitchDaemon {
+    |        ^^^^^^^^^^^^^^^^
+
+warning: associated function `from_node_or_target` is never used
+  --> pipeswitchd/src/main.rs:32:8
+   |
+32 |     fn from_node_or_target(name: String, special: bool, node_or_target: &NodeOrTarget) -> Rule {
+   |        ^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `add_if_matches` is never used
+  --> pipeswitchd/src/main.rs:59:8
+   |
+59 |     fn add_if_matches(&mut self, port: &Port, state: &PipewireState) -> bool {
+   |        ^^^^^^^^^^^^^^
+
+warning: associated function `delete` is never used
+  --> pipeswitchd/src/main.rs:99:8
+   |
+99 |     fn delete(&mut self, port: &Port) -> bool {
+   |        ^^^^^^
+
+warning: associated function `ignore_channel` is never used
+   --> pipeswitchd/src/main.rs:110:8
+    |
+110 |     fn ignore_channel(&self, other: &Rule) -> bool {
+    |        ^^^^^^^^^^^^^^
+
+warning: associated function `new` is never used
+   --> pipeswitchd/src/main.rs:129:12
+    |
+129 |     pub fn new(pipeswitch: Pipeswitch) -> Self {
+    |            ^^^
+
+warning: associated function `update_config` is never used
+   --> pipeswitchd/src/main.rs:136:8
+    |
+136 |     fn update_config(&mut self, config: &Config) {
+    |        ^^^^^^^^^^^^^
+
+warning: associated function `new_port` is never used
+   --> pipeswitchd/src/main.rs:158:8
+    |
+158 |     fn new_port(&mut self, port: &Port) {
+    |        ^^^^^^^^
+
+warning: associated function `port_deleted` is never used
+   --> pipeswitchd/src/main.rs:180:8
+    |
+180 |     fn port_deleted(&mut self, port: &Port) {
+    |        ^^^^^^^^^^^^
+
+warning: variants `Pipeswitch` and `ConfigModified` are never constructed
+  --> pipeswitchd/src/config.rs:13:5
+   |
+12 | pub enum Event {
+   |          ----- variants in this enum
+13 |     Pipeswitch(PipeswitchMessage),
+   |     ^^^^^^^^^^
+14 |     ConfigModified(Config),
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `Event` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: function `start_pipeswitch_thread` is never used
+  --> pipeswitchd/src/config.rs:74:8
+   |
+74 | pub fn start_pipeswitch_thread(sender: Sender<Event>) -> (Pipeswitch, JoinHandle<()>) {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `start` is never used
+  --> pipeswitchd/src/config.rs:35:12
+   |
+35 |     pub fn start(path: &PathBuf, sender: Sender<Event>) -> ConfigListener {
+   |            ^^^^^
+
+warning: `pipeswitchd` (bin "pipeswitchd") generated 18 warnings
+    Finished dev [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/pipeswitchd`
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 0,
+    permissions: R | W | X | M,
+    type_: Core,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "0",
+                "core.name": "pipewire-0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 1,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1",
+                "module.name": "libpipewire-module-rt",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 2,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2",
+                "module.name": "libpipewire-module-protocol-native",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 4,
+    permissions: R | W | X | M,
+    type_: Profiler,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "4",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 3,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3",
+                "module.name": "libpipewire-module-profiler",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 5,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "5",
+                "module.name": "libpipewire-module-metadata",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 6,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "6",
+                "module.id": "5",
+                "factory.name": "metadata",
+                "factory.type.name": "PipeWire:Interface:Metadata",
+                "factory.type.version": "3",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 7,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "7",
+                "module.name": "libpipewire-module-spa-device-factory",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 8,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "8",
+                "module.id": "7",
+                "factory.name": "spa-device-factory",
+                "factory.type.name": "PipeWire:Interface:Device",
+                "factory.type.version": "3",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 9,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "9",
+                "module.name": "libpipewire-module-spa-node-factory",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 10,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "10",
+                "module.id": "9",
+                "factory.name": "spa-node-factory",
+                "factory.type.name": "PipeWire:Interface:Node",
+                "factory.type.version": "3",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 11,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "11",
+                "module.name": "libpipewire-module-client-node",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 12,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "12",
+                "module.id": "11",
+                "factory.name": "client-node",
+                "factory.type.name": "PipeWire:Interface:ClientNode",
+                "factory.type.version": "4",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 13,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "13",
+                "module.name": "libpipewire-module-client-device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 14,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "14",
+                "module.id": "13",
+                "factory.name": "client-device",
+                "factory.type.name": "Spa:Pointer:Interface:Device",
+                "factory.type.version": "0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 15,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "15",
+                "module.name": "libpipewire-module-portal",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 16,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "16",
+                "module.name": "libpipewire-module-access",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 17,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "17",
+                "module.name": "libpipewire-module-adapter",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 18,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "18",
+                "module.id": "17",
+                "factory.name": "adapter",
+                "factory.type.name": "PipeWire:Interface:Node",
+                "factory.type.version": "3",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 19,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "19",
+                "module.name": "libpipewire-module-link-factory",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 20,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "20",
+                "module.id": "19",
+                "factory.name": "link-factory",
+                "factory.type.name": "PipeWire:Interface:Link",
+                "factory.type.version": "3",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 21,
+    permissions: R | W | X | M,
+    type_: Module,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "21",
+                "module.name": "libpipewire-module-session-manager",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 22,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "22",
+                "module.id": "21",
+                "factory.name": "client-endpoint",
+                "factory.type.name": "PipeWire:Interface:ClientEndpoint",
+                "factory.type.version": "0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 23,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "23",
+                "module.id": "21",
+                "factory.name": "client-session",
+                "factory.type.name": "PipeWire:Interface:ClientSession",
+                "factory.type.version": "0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 24,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "24",
+                "module.id": "21",
+                "factory.name": "session",
+                "factory.type.name": "PipeWire:Interface:Session",
+                "factory.type.version": "0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 25,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "25",
+                "module.id": "21",
+                "factory.name": "endpoint",
+                "factory.type.name": "PipeWire:Interface:Endpoint",
+                "factory.type.version": "0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 26,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "26",
+                "module.id": "21",
+                "factory.name": "endpoint-stream",
+                "factory.type.name": "PipeWire:Interface:EndpointStream",
+                "factory.type.version": "0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 27,
+    permissions: R | W | X | M,
+    type_: Factory,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "27",
+                "module.id": "21",
+                "factory.name": "endpoint-link",
+                "factory.type.name": "PipeWire:Interface:EndpointLink",
+                "factory.type.version": "0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 28,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "28",
+                "factory.id": "10",
+                "priority.driver": "20000",
+                "node.name": "Dummy-Driver",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 29,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "29",
+                "factory.id": "10",
+                "priority.driver": "19000",
+                "node.name": "Freewheel-Driver",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 30,
+    permissions: R | W | X | M,
+    type_: Metadata,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "30",
+                "metadata.name": "settings",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 31,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "31",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "870",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:00000000000000000038e0321f1e72b2f8ab2c950356000040326da3fd7f0000f8ab2c950356000040326da3fd7f000074336da3fd7f0000b3a39d00527f000040326da3fd7f0000b3a39d00527f000080326da3fd7f000049769f00527f000038fe2e950356000065f29d00527f000020336da3fd7f00730b00000000000000c8326da3fd7f0000000000001a0000002c00000000000000f8ab2c95035600006c0000000000000038fe2e9503560000060000000000000038e12e95035600000c00000000000000e0bda000527f00000000000000000000f0a32c95035600006c0000000000000010bea000527f00000b0000000000000038e12e950356000036000000000000000038e0321f1e72b2100000000000000038fe2e950356000000000000000000006c0000000000000038e12e9503560000d0326da3fd7f0000f8ab2c950356000085fa9d00527f0000c8326da3fd7f00004ffa9d00527f00006c0000000000000038fe2e95035600006c00000000000000c0bba000527f000000000000000000000000000000000000ffffff7f00000000eeed9e00527f000050e12e95035600004d569f00527f000030e12e95035600008a8c4501527f00000d0000000000000050346da3fd7f0000e0336da3fd7f00001f119f00527f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000660f9f00527f000040e02e950356000040ad2c9503560000a0e22e9503560000d0cc2c950356000094346da3fd7f000064af9e000000000000fe2e9503560000000800000000000000000000000000000000000000000000d0336da3fd7f0000010000000000000040336da3fd7f0000500000000000000000000000000000000038e0321f1e72b240e02e9503560000380000000000000000baa000527f0000a0346da3fd7f000071a52c95035600300038e0321f1e72b270a52c950356000080ffffffffffffff0b0000000000000002000000000000000300000000000000aa704501527f0000d0346da3fd7f0000a35b3e0103000000b0346da3fd7f000020000000ffffffff020000000000000069f66301527f00000100000040142f950356000001000000a0be2f950356000001000000209a2f950356000003560000506f309503560000506f309503560000506f309503560000506f309503560000fe4c3e01527f0000f0223195035600000000000000000000b46f309503560000000000000000000000000000000000000e00000000000000a07b5201527f0000b8ffffffffffffff0300000000000000300c319503560000200c3195035600002d563e01527f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "pw-link",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 32,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "32",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "872",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:00000000000000000038e0320000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600006b00000000000000989d2f95035600008500000000000000a0bca000527f000000000000000000000038e0321f1e72b250326da3fd7f0000850000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f000039a49d00527f000060336da3fd7f000029b09d00527f000058326da3fd7f00004ffa9d00720000006c0100000000000010bea000527f00000b00000000000000989d2f9503560000850000000000000060bda000527f000000000000000000000038e0321f1e72b2b8f02e950356000060336da3fd7f0000b8f02e950356000060336da3fd7f000094346da3fd7f00000038e0321f1e72b2f0336da3fd7f0000f0336da3fd7f0000f0336da3fd7f000039a49d00527f0000d5b32f950356000065f29d00527f0000ffffff7f000000730b00000000000000e8336da3fd7f000050336da3fd7f00008cb32f9503560000b8f02e95035600006c00000000000000d5b32f95035600000600000000000000989d2f95035600000c00000000000000e0bda000527f00008cb32f95035600004800000050000000470000000000000010bea000527f00000b00000000000000989d2f950356000085000000000000000038e0321f1e72b21000000000000000d5b32f950356000000000000000000006c00000000000000989d2f9503560000f0336da3fd7f0000b8f02e950356000085fa9d00527f0000e8336da3fd7f00004ffa9d00527f00006c00000000000000d5b32f95035600006c00000000000000fe4c3e01527f00007065329503560000fe4c3e01527f0000e0653295035600000000000000000000b09d2f9503560000200000000000000060653295035600000500000000000000a07b5201527f0000b8ffffffffffffff1500000000000000150000000000000004000000000000002d563e01527f00000000000000000000aa704501527f000080653295035600000038e03203000000b0346da3fd7f000020000000ffffffff0b0000000000000069f66301527f00000100000040142f950356000001000000209a2f950356000001000000503731950356000003560000c0a32f95035600000000000000000000ef2e9d00527f0000c0a32f9503560000000000000000000078df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f000070653295035600000100000003560000d50000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "pw-link",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 33,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "33",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "857",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:a09a329503560000c0316da3fd7f00000872329503560000da799800527f000080d8339503560000000000000000000008000000050000002100000000000000a09a329503560000280000000e00000000000000000000002800000000000000100000000e000000a8316da3fd7f00004000000000000000010000000000000000000000000000000038e0321f1e72b2c09c339503560000607032950356000018332b950356000040312b950356000080516101527f00006bda5801527f000020992f9503560000b8332b9503560000000000000000000000000000000000000000000000000000000000000000000010203395020000000038e0321f1e72b2d070329503560000b8332b9503560000607032950356000060703295035600000100000000000000f1139a00527f0000190000000000000082759800527f0000a09a329503560000000000000000000039879a00527f0000e0649a00527f0000690000000000000023829800527f000073000000000000000038e0320e00000019000000040000001900000000000000607032950356000082759800527f0000a09a329503560000000000000000000039879a00527f0000e0649a00527f0000690000000000000023829800527f00000400000004000000607032950e000000200a000000000000d0793295035600000872329503560000d879329503560000260000400000000000000000000000006872329503560000d879329503560000000000000000000000000000000000000400000004000000030000400000000000000000000000000038e0321f1e72b23000000030000000c0346da3fd7f0000d0336da3fd7f00000038e0321f1e72b2087232950356000060703295035600002800000000000000d0793295035600000872329503560000d8793295035600002700004000000000f8f09900527f00006872329503560000d87932950356000000000000000000000038e0321f1e72b20000000000000000d07932950356000010000000000000008a8c4501527f0000b0346da3fd7f00001600000040000040d07932950356000028e09900527f00000872329503560000aa704501527f0000209b339503560000a09a329501000000b0346da3fd7f000020000000ffffffffa09a32950356000069f66301527f00000100000040142f9503560000527f0000f0346da3fd7f0000600a00000000000010356da3fd7f0000800000004040000040000040000000004fe89900527f0000504831950356000050483195035600000000000000000000d0793295035600000000000000000000000000000000000050356da3fd7f000001000000000000000000000000000000000000000000000000000000000000000300004000000000f058319503560000600a000000000000",
+                "pipewire.access": "unrestricted",
+                "application.name": "WirePlumber",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 34,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "34",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "857",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:a09a329503560000c0316da3fd7f00000872329503560000da799800527f000080d8339503560000000000000000000008000000050000002100000000000000a09a329503560000280000000e00000000000000000000002800000000000000100000000e000000a8316da3fd7f00004000000000000000010000000000000000000000000000000038e0321f1e72b2c09c339503560000607032950356000018332b950356000040312b950356000080516101527f00006bda5801527f000020992f9503560000b8332b9503560000000000000000000000000000000000000000000000000000000000000000000010203395020000000038e0321f1e72b2d070329503560000b8332b9503560000607032950356000060703295035600000100000000000000f1139a00527f0000190000000000000082759800527f0000a09a329503560000000000000000000039879a00527f0000e0649a00527f0000690000000000000023829800527f000073000000000000000038e0320e00000019000000040000001900000000000000607032950356000082759800527f0000a09a329503560000000000000000000039879a00527f0000e0649a00527f0000690000000000000023829800527f00000400000004000000607032950e000000200a000000000000d0793295035600000872329503560000d879329503560000260000400000000000000000000000006872329503560000d879329503560000000000000000000000000000000000000400000004000000030000400000000000000000000000000038e0321f1e72b23000000030000000c0346da3fd7f0000d0336da3fd7f00000038e0321f1e72b2087232950356000060703295035600002800000000000000d0793295035600000872329503560000d8793295035600002700004000000000f8f09900527f00006872329503560000d87932950356000000000000000000000038e0321f1e72b20000000000000000d07932950356000010000000000000008a8c4501527f0000b0346da3fd7f00001600000040000040d07932950356000028e09900527f00000872329503560000aa704501527f0000209b339503560000a09a329502000000b0346da3fd7f000020000000ffffffffa09a32950356000069f66301527f00000100000040142f950356000001000000f0f9339503560000600a00000000000010356da3fd7f0000800000004040000040000040000000004fe89900527f0000504831950356000050483195035600000000000000000000d0793295035600000000000000000000000000000000000050356da3fd7f000001000000000000000000000000000000000000000000000000000000000000000300004000000000f058319503560000600a000000000000",
+                "pipewire.access": "unrestricted",
+                "application.name": "WirePlumber [export]",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 35,
+    permissions: R | W | X | M,
+    type_: Metadata,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "factory.id": "6",
+                "module.id": "5",
+                "metadata.name": "default",
+                "client.id": "33",
+                "object.serial": "35",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 36,
+    permissions: R | W | X | M,
+    type_: Metadata,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "metadata.name": "route-settings",
+                "factory.id": "6",
+                "module.id": "5",
+                "client.id": "33",
+                "object.serial": "36",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 37,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "37",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "v4l2",
+                "device.description": "C270 HD WEBCAM",
+                "device.name": "v4l2_device.pci-0000_02_00.0-usb-0_5_1.0",
+                "media.class": "Video/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 38,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "38",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "v4l2",
+                "device.description": "C270 HD WEBCAM",
+                "device.name": "v4l2_device.pci-0000_02_00.0-usb-0_5_1.0.2",
+                "media.class": "Video/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 41,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "41",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "libcamera",
+                "device.description": "Unknown device",
+                "device.name": "libcamera_device.0",
+                "media.class": "Video/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 43,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "43",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "alsa",
+                "device.description": "Webcam C270",
+                "device.name": "alsa_card.usb-046d_C270_HD_WEBCAM_70BF2D50-02",
+                "device.nick": "C270 HD WEBCAM",
+                "media.class": "Audio/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 45,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "45",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "alsa",
+                "device.description": "GP104 High Definition Audio Controller",
+                "device.name": "alsa_card.pci-0000_2b_00.1",
+                "device.nick": "HDA NVidia",
+                "media.class": "Audio/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 46,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "46",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "alsa",
+                "device.description": "Blue Snowball",
+                "device.name": "alsa_card.usb-MICE_MICROPHONE_USB_MICROPHONE_201308-00",
+                "device.nick": "USB MICROPHONE",
+                "media.class": "Audio/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 48,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "48",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "alsa",
+                "device.description": "Starship/Matisse HD Audio Controller",
+                "device.name": "alsa_card.pci-0000_2d_00.4",
+                "device.nick": "HD-Audio Generic",
+                "media.class": "Audio/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 49,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "49",
+                "object.path": "v4l2:/dev/video0",
+                "factory.id": "10",
+                "client.id": "34",
+                "device.id": "37",
+                "priority.session": "1000",
+                "node.description": "C270 HD WEBCAM (V4L2)",
+                "node.name": "v4l2_input.pci-0000_02_00.0-usb-0_5_1.0",
+                "node.nick": "C270 HD WEBCAM",
+                "media.class": "Video/Source",
+                "media.role": "Camera",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 50,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "50",
+                "node.id": "49",
+                "port.id": "0",
+                "port.name": "out_0",
+                "port.direction": "out",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "C270 HD WEBCAM:out_0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 53,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "53",
+                "object.path": "libcamera:\\_SB_.PCI0.GPP1.PTXH.RHUB.PO9_-5:1.0-046d:0825",
+                "factory.id": "10",
+                "client.id": "34",
+                "device.id": "41",
+                "priority.session": "850",
+                "node.description": "C270 HD WEBCAM",
+                "node.name": "libcamera_input.__SB_.PCI0.GPP1.PTXH.RHUB.PO9_-5_1.0-046d_0825",
+                "node.nick": "C270 HD WEBCAM",
+                "media.class": "Video/Source",
+                "media.role": "Camera",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 54,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "54",
+                "node.id": "53",
+                "port.id": "0",
+                "port.name": "out_0",
+                "port.direction": "out",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "C270 HD WEBCAM:out_0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 57,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "57",
+                "object.path": "alsa:pcm:3:hw:3:capture",
+                "factory.id": "18",
+                "client.id": "34",
+                "device.id": "43",
+                "priority.session": "2000",
+                "priority.driver": "2000",
+                "node.description": "Webcam C270 Mono",
+                "node.name": "alsa_input.usb-046d_C270_HD_WEBCAM_70BF2D50-02.mono-fallback",
+                "node.nick": "C270 HD WEBCAM",
+                "media.class": "Audio/Source",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 59,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "59",
+                "object.path": "alsa:pcm:2:hw:2:capture",
+                "factory.id": "18",
+                "client.id": "34",
+                "device.id": "46",
+                "priority.session": "2000",
+                "priority.driver": "2000",
+                "node.description": "Blue Snowball Mono",
+                "node.name": "alsa_input.usb-MICE_MICROPHONE_USB_MICROPHONE_201308-00.mono-fallback",
+                "node.nick": "USB MICROPHONE",
+                "media.class": "Audio/Source",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 62,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "62",
+                "object.path": "alsa:pcm:3:hw:3:capture:capture_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "57",
+                "audio.channel": "MONO",
+                "port.id": "0",
+                "port.name": "capture_MONO",
+                "port.direction": "out",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "C270 HD WEBCAM:capture_MONO",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 67,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "67",
+                "object.path": "alsa:pcm:2:hw:2:capture:capture_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "59",
+                "audio.channel": "MONO",
+                "port.id": "0",
+                "port.name": "capture_MONO",
+                "port.direction": "out",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "USB MICROPHONE:capture_MONO",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 73,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "73",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "310851",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:0000000000000000000000000000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f000038bc2f950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f000030bc2f95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b238bc2f9503560000000000000000000030bc2f950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f000030bc2f9503560000000060000d0000006c0000000000000038bc2f9503560000980000000000000080bc2f95035600003e00000000000000e0bda000527f000000000000000000000038e0321f1e72b2000000000000000030bc2f95035600007300000000000000000000000000000030bc2f9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000d8df2e950356000030bc2f950356000030bc2f950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000d8df2e950356000030bc2f950356000030bc2f950356000030a62f950356000061604401527f0000d8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffd8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001bc2f9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000d8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f000030605095035600000100000003560000de0000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "xdg-desktop-portal",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 74,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "74",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "858",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:4b00000000000000fe4c3e010000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c9503560000000060000d0000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600004200000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000d8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000d8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000d8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffd8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000d8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f0000707c5695035600000100000003560000e20000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "Firefox",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 75,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "75",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "858",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:400000000e000000060000000000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c950356000000006000080000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600001d00000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000d8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000d8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000d8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffd8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000d8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f000000da5895035600000100000003560000bd0000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "WEBRTC VoiceEngine",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 76,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "76",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "858",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:100000000e00000006000000000000000100000000000000010000000000000000000000000000000038e0321f1e72b2800c599503560000000000000000000018332b950356000040312b950356000080516101527f00006bda5801527f0000000000000000000082759800527f0000301b349503560000000000000000000039879a00527f0000e0649a00527f0000690000000000000023829800527f0000900b599503560000827598000e000000900b59950356000082759800527f0000301b349503560000000000000000000039879a00527f0000e0649a00527f0000690000000000000023829800527f00006900000000000000827598000e00000004000000040000004b0000000000000039879a00527f0000e0649a00527f000030000000300000000038e0321f1e72b2a0326da3fd7f000000f3339503560000201000000000000060fa339503560000a8f433950356000068fa3395035600000b04004000000000f8f09900527f000008f533950356000068fa33950356000000000000000000000000000000000000000000000000000082759800527f0000900b599503560000000000000000000039879a00527f0000e0649a00527f0000690000000000000023829800527f0000a8f4339503560000da7998000e000000f80f00000356000030da5895035600008002000000000000c023599503560000301b349503560000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000004000000d800004000000000f0e85995035600000038e0321f1e72b23000000030000000c0346da3fd7f0000d0336da3fd7f00000038e0321f1e72b250ea58950356000060e35895035600002800000000000000c0ea58950356000008e5589503560000c8ea589503560000d802004000000000f8f09900527f000068e5589503560000c8ea58950356000000000000000000000038e0321f1e72b20000000000000000c0ea58950356000010000000000000008a8c4501527f0000b0346da3fd7f00003d00000040000040c0ea58950356000028e09900527f000008e5589503560000aa704501527f0000f00b599503560000900b599501000000b0346da3fd7f000020000000ffffffff900b59950356000069f66301527f00000100000040142f9503560000527f0000f0346da3fd7f0000180100000000000010356da3fd7f0000800000004040000040000040000000004fe89900527f000050fb58950356000050fb5895035600000000000000000000c0ea5895035600000000000000000000000000000000000050356da3fd7f00000100000000000000000000000000000000000000000000000000000000000000d80000400000000050ba5a95035600001801000000000000",
+                "pipewire.access": "unrestricted",
+                "application.name": "Chromium input",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 89,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "89",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "858",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:48915d9503560000da799800527f0000b885699503560000000000000000000010326da3fd7f00000038e0321f1e72b2d0b75d950356000070f86495035600002800000000000000b09d63950356000018fa649503560000b89d639503560000a503004000000000f8f09900527f000078fa649503560000b89d639503560000000000000000000000000000000000000000000000000000000000000000000038000000000000000038e0321f1e72b2a50300400000000070f864950356000080be639503560000000000000000000018fa649503560000da799800527f000090326da3fd7f00000038e0321f1e72b228772b950356000070f864950356000080be6395035600002af69900527f000000000000000000000038e0321f1e72b2301b349503560000301b349503560000000000000000000018139a00527f0000e0649a00527f0000718d9800527f000080be639503560000a00265950e0000000000000000000000380000000000000010196495035600002fa79800527f000058be6395035600000000000000000000200000000e00000082759800527f0000d0b75d9503560000000000000000000039879a00527f0000e0649a00527f0000690000000000000023829800527f0000f0346da3fd7f0000e18b5a010e000000300000003000000070346da3fd7f000060336da3fd7f00000038e0321f1e72b22000000030000000000000000000000080336da3fd7f00000038e0321f1e72b2f4346da3fd7f000060ae95ff517f000004000000040000004c01004000000000b0346da3fd7f00000100000000000000300000003000000093f56301527f0000d0336da3fd7f00000038e0321d00000090965d95035600000038e0321f1e72b22800000000000000cbe86201527f000008975d9503560000db0300400000000000975d9503560000f8f09900527f0000a8915d950356000008975d950356000000000000000000000038e0321f1e72b2000000000000000000975d950356000010000000000000008a8c4501527f0000b0346da3fd7f00003f0000004000004000975d950356000028e09900527f000048915d9503560000aa704501527f000030b85d9503560000d0b75d9501000000b0346da3fd7f000020000000ffffffffd0b75d950356000069f66301527f00000100000040142f9503560000527f0000f0346da3fd7f0000380000000000000010356da3fd7f0000800000004040000040000040000000004fe89900527f000090a75d950356000090a75d9503560000000000000000000000975d95035600000000000000000000000000000000000050356da3fd7f000001000000000000000000000000000000000000000000000000000000000000004c01004000000000a08c5f95035600003800000000000000",
+                "pipewire.access": "unrestricted",
+                "application.name": "Firefox",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 77,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "90",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "858",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:904c77fd517f00002af699000000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c950356000000006000080000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600001d00000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000d8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000d8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000d8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffd8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000d8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f0000100d6595035600000100000003560000bd0000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "Firefox",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 103,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1074",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "858",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:208f98950e000000060000000000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c9503560000000060000e0000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600001f00000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000e0a82c9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000e0a82c9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000e0a82c95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffe0a82c950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000e0a82c950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f000080cd8f95035600000100000003560000bf0000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "OBS",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 96,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1075",
+                "factory.id": "6",
+                "client.id": "103",
+                "application.name": "OBS",
+                "node.name": "OBS",
+                "media.class": "Stream/Input/Audio",
+                "media.role": "Production",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 122,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1076",
+                "object.path": "OBS:input_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "96",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "input_FL",
+                "port.direction": "in",
+                "port.alias": "OBS:input_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 94,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1077",
+                "object.path": "OBS:monitor_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "96",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "monitor_FL",
+                "port.direction": "out",
+                "port.monitor": "true",
+                "port.alias": "OBS:monitor_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 105,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1078",
+                "object.path": "OBS:input_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "96",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "input_FR",
+                "port.direction": "in",
+                "port.alias": "OBS:input_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 98,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1079",
+                "object.path": "OBS:monitor_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "96",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "monitor_FR",
+                "port.direction": "out",
+                "port.monitor": "true",
+                "port.alias": "OBS:monitor_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 106,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1082",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "816985",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:6900000000000000238298000000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c9503560000000060000e0000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600001f00000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000e0a82c9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b20200000003560000c09b2f95035600000200000000000000e0a82c9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000e0a82c95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffe0a82c950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000e0a82c950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f0000107fd995035600000100000003560000bf0000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "obs",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 118,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1083",
+                "client.id": "106",
+                "node.description": "FirefoxInput",
+                "node.name": "FirefoxInput",
+                "media.type": "Audio",
+                "media.category": "Duplex",
+                "media.role": "DSP",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 127,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1084",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "118",
+                "port.id": "0",
+                "port.name": "in_1",
+                "port.direction": "in",
+                "port.terminal": "true",
+                "port.alias": "FirefoxInput:in_1",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 126,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1085",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "118",
+                "port.id": "1",
+                "port.name": "in_2",
+                "port.direction": "in",
+                "port.terminal": "true",
+                "port.alias": "FirefoxInput:in_2",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 115,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1086",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "816985",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:eba795ff517f0000590a94ff0000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c9503560000000060000e0000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600001f00000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000e0a82c9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b20200000003560000c09b2f95035600000200000000000000e0a82c9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000e0a82c95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffe0a82c950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000e0a82c950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f0000706dd895035600000100000003560000bf0000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "obs",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 124,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1087",
+                "client.id": "115",
+                "node.description": "Runescape OBS Sink",
+                "node.name": "Runescape OBS Sink",
+                "media.type": "Audio",
+                "media.category": "Duplex",
+                "media.role": "DSP",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 112,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1088",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "124",
+                "port.id": "0",
+                "port.name": "in_1",
+                "port.direction": "in",
+                "port.terminal": "true",
+                "port.alias": "Runescape OBS Sink:in_1",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 78,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1089",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "124",
+                "port.id": "1",
+                "port.name": "in_2",
+                "port.direction": "in",
+                "port.terminal": "true",
+                "port.alias": "Runescape OBS Sink:in_2",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 61,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1145",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "v4l2",
+                "device.description": "HTC Vive",
+                "device.name": "v4l2_device.pci-0000_2d_00.3-usb-0_3.1.2_1.0",
+                "media.class": "Video/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 52,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1146",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "v4l2",
+                "device.description": "HTC Vive",
+                "device.name": "v4l2_device.pci-0000_2d_00.3-usb-0_3.1.2_1.0",
+                "media.class": "Video/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 40,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1147",
+                "object.path": "v4l2:/dev/video2",
+                "factory.id": "10",
+                "client.id": "34",
+                "device.id": "52",
+                "priority.session": "980",
+                "node.description": "HTC Vive (V4L2)",
+                "node.name": "v4l2_input.pci-0000_2d_00.3-usb-0_3.1.2_1.0",
+                "node.nick": "HTC Vive",
+                "media.class": "Video/Source",
+                "media.role": "Camera",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 51,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1148",
+                "node.id": "40",
+                "port.id": "0",
+                "port.name": "out_0",
+                "port.direction": "out",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "HTC Vive:out_0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 56,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1149",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "libcamera",
+                "device.description": "Unknown device",
+                "device.name": "libcamera_device.1",
+                "media.class": "Video/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 42,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1150",
+                "object.path": "libcamera:\\_SB_.PCI0.GP13.XHC0.RHUB.PRT3-3.1.2:1.0-0bb4:2c87",
+                "factory.id": "10",
+                "client.id": "34",
+                "device.id": "56",
+                "priority.session": "850",
+                "node.description": "HTC Vive",
+                "node.name": "libcamera_input.__SB_.PCI0.GP13.XHC0.RHUB.PRT3-3.1.2_1.0-0bb4_2c87",
+                "node.nick": "HTC Vive",
+                "media.class": "Video/Source",
+                "media.role": "Camera",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 55,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1151",
+                "node.id": "42",
+                "port.id": "0",
+                "port.name": "out_0",
+                "port.direction": "out",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "HTC Vive:out_0",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 47,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1152",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "alsa",
+                "device.description": "Vive",
+                "device.name": "alsa_card.usb-Alpha_Imaging_Tech_HTC_Vive-02",
+                "device.nick": "HTC Vive",
+                "media.class": "Audio/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 72,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1153",
+                "object.path": "alsa:pcm:4:front:4:playback",
+                "factory.id": "18",
+                "client.id": "34",
+                "device.id": "47",
+                "priority.session": "1009",
+                "priority.driver": "1009",
+                "node.description": "Vive Analog Stereo",
+                "node.name": "alsa_output.usb-Alpha_Imaging_Tech_HTC_Vive-02.analog-stereo",
+                "node.nick": "HTC Vive",
+                "media.class": "Audio/Sink",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 39,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1154",
+                "object.path": "alsa:pcm:4:hw:4:capture",
+                "factory.id": "18",
+                "client.id": "34",
+                "device.id": "47",
+                "priority.session": "2000",
+                "priority.driver": "2000",
+                "node.description": "Vive Mono",
+                "node.name": "alsa_input.usb-Alpha_Imaging_Tech_HTC_Vive-02.mono-fallback",
+                "node.nick": "HTC Vive",
+                "media.class": "Audio/Source",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 68,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1155",
+                "object.path": "alsa:pcm:4:front:4:playback:playback_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "72",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "playback_FL",
+                "port.direction": "in",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "HTC Vive:playback_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 71,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1156",
+                "object.path": "alsa:pcm:4:front:4:playback:monitor_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "72",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "monitor_FL",
+                "port.direction": "out",
+                "port.monitor": "true",
+                "port.alias": "HTC Vive:monitor_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 69,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1157",
+                "object.path": "alsa:pcm:4:front:4:playback:playback_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "72",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "playback_FR",
+                "port.direction": "in",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "HTC Vive:playback_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 70,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1158",
+                "object.path": "alsa:pcm:4:front:4:playback:monitor_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "72",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "monitor_FR",
+                "port.direction": "out",
+                "port.monitor": "true",
+                "port.alias": "HTC Vive:monitor_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 60,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1159",
+                "object.path": "alsa:pcm:4:hw:4:capture:capture_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "39",
+                "audio.channel": "MONO",
+                "port.id": "0",
+                "port.name": "capture_MONO",
+                "port.direction": "out",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "HTC Vive:capture_MONO",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 110,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1160",
+                "factory.id": "6",
+                "client.id": "75",
+                "application.name": "WEBRTC VoiceEngine",
+                "node.name": "WEBRTC VoiceEngine",
+                "media.class": "Stream/Input/Audio",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 117,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1161",
+                "object.path": "WEBRTC VoiceEngine:input_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "110",
+                "audio.channel": "MONO",
+                "port.id": "0",
+                "port.name": "input_MONO",
+                "port.direction": "in",
+                "port.alias": "WEBRTC VoiceEngine:input_MONO",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 119,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1162",
+                "object.path": "WEBRTC VoiceEngine:monitor_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "110",
+                "audio.channel": "MONO",
+                "port.id": "0",
+                "port.name": "monitor_MONO",
+                "port.direction": "out",
+                "port.monitor": "true",
+                "port.alias": "WEBRTC VoiceEngine:monitor_MONO",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 97,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "1163",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "67",
+                "link.input.port": "117",
+                "link.output.node": "59",
+                "link.input.node": "110",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "1163",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "67",
+        "link.input.port": "117",
+        "link.output.node": "59",
+        "link.input.node": "110",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 91,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2123",
+                "factory.id": "6",
+                "client.id": "77",
+                "application.name": "Firefox",
+                "node.name": "Firefox",
+                "media.class": "Stream/Output/Audio",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 86,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2124",
+                "object.path": "Firefox:output_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "91",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "output_FL",
+                "port.direction": "out",
+                "port.alias": "Firefox:output_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 136,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2125",
+                "object.path": "Firefox:output_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "91",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "output_FR",
+                "port.direction": "out",
+                "port.alias": "Firefox:output_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 88,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2130",
+                "factory.id": "20",
+                "link.output.port": "86",
+                "link.input.port": "126",
+                "link.output.node": "91",
+                "link.input.node": "118",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "2130",
+        "factory.id": "20",
+        "link.output.port": "86",
+        "link.input.port": "126",
+        "link.output.node": "91",
+        "link.input.node": "118",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 84,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2132",
+                "factory.id": "20",
+                "link.output.port": "86",
+                "link.input.port": "127",
+                "link.output.node": "91",
+                "link.input.node": "118",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "2132",
+        "factory.id": "20",
+        "link.output.port": "86",
+        "link.input.port": "127",
+        "link.output.node": "91",
+        "link.input.node": "118",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 131,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2134",
+                "factory.id": "20",
+                "link.output.port": "136",
+                "link.input.port": "126",
+                "link.output.node": "91",
+                "link.input.node": "118",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "2134",
+        "factory.id": "20",
+        "link.output.port": "136",
+        "link.input.port": "126",
+        "link.output.node": "91",
+        "link.input.node": "118",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 93,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2171",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "858",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:a07b5201527f0000b8ffffff0000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c950356000000006000080000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600001d00000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000a8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000a8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000a8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffa8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000a8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f000070266495035600000100000003560000bd0000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "electron",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 116,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2752",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "816985",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:100fb29503560000000000000000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c9503560000000060000f0000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600002000000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000d8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000d8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000d8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffd8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000d8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f0000009e4195035600000100000003560000c00000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "obs",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 108,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2753",
+                "client.id": "116",
+                "node.description": "VideoGameInput",
+                "node.name": "VideoGameInput",
+                "media.type": "Audio",
+                "media.category": "Duplex",
+                "media.role": "DSP",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 128,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2754",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "108",
+                "port.id": "0",
+                "port.name": "in_1",
+                "port.direction": "in",
+                "port.terminal": "true",
+                "port.alias": "VideoGameInput:in_1",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 114,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2755",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "108",
+                "port.id": "1",
+                "port.name": "in_2",
+                "port.direction": "in",
+                "port.terminal": "true",
+                "port.alias": "VideoGameInput:in_2",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 111,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2953",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "858",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:70316da3fd7f00000038e0320000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c9503560000000060000f0000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600003800000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000a8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000a8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000a8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffa8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000a8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f000030c04195035600000100000003560000d80000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "spotify",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 120,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2954",
+                "factory.id": "6",
+                "client.id": "111",
+                "application.name": "spotify",
+                "node.name": "spotify",
+                "media.class": "Stream/Output/Audio",
+                "media.role": "Music",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 125,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2955",
+                "object.path": "spotify:output_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "120",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "output_FL",
+                "port.direction": "out",
+                "port.alias": "spotify:output_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 99,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "2956",
+                "object.path": "spotify:output_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "120",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "output_FR",
+                "port.direction": "out",
+                "port.alias": "spotify:output_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 100,
+    permissions: R | W | X | M,
+    type_: Device,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3046",
+                "factory.id": "14",
+                "client.id": "34",
+                "device.api": "alsa",
+                "device.description": "Ti USB Audio ",
+                "device.name": "alsa_card.usb-Texas_Instruments_Ti_USB_Audio-00",
+                "device.nick": "Ti USB Audio",
+                "media.class": "Audio/Device",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 63,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3047",
+                "object.path": "alsa:pcm:5:front:5:playback",
+                "factory.id": "18",
+                "client.id": "34",
+                "device.id": "100",
+                "priority.session": "1009",
+                "priority.driver": "1009",
+                "node.description": "Ti USB Audio  Analog Stereo",
+                "node.name": "alsa_output.usb-Texas_Instruments_Ti_USB_Audio-00.analog-stereo",
+                "node.nick": "Ti USB Audio",
+                "media.class": "Audio/Sink",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 95,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3048",
+                "object.path": "alsa:pcm:5:front:5:playback:playback_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "63",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "playback_FL",
+                "port.direction": "in",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "Ti USB Audio:playback_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 101,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3049",
+                "object.path": "alsa:pcm:5:front:5:playback:monitor_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "63",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "monitor_FL",
+                "port.direction": "out",
+                "port.monitor": "true",
+                "port.alias": "Ti USB Audio:monitor_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 64,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3050",
+                "object.path": "alsa:pcm:5:front:5:playback:playback_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "63",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "playback_FR",
+                "port.direction": "in",
+                "port.physical": "true",
+                "port.terminal": "true",
+                "port.alias": "Ti USB Audio:playback_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 129,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3051",
+                "object.path": "alsa:pcm:5:front:5:playback:monitor_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "63",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "monitor_FR",
+                "port.direction": "out",
+                "port.monitor": "true",
+                "port.alias": "Ti USB Audio:monitor_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 123,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3052",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "101",
+                "link.input.port": "122",
+                "link.output.node": "63",
+                "link.input.node": "96",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3052",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "101",
+        "link.input.port": "122",
+        "link.output.node": "63",
+        "link.input.node": "96",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 109,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3053",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "129",
+                "link.input.port": "105",
+                "link.output.node": "63",
+                "link.input.node": "96",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3053",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "129",
+        "link.input.port": "105",
+        "link.output.node": "63",
+        "link.input.node": "96",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 58,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3054",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "125",
+                "link.input.port": "95",
+                "link.output.node": "120",
+                "link.input.node": "63",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3054",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "125",
+        "link.input.port": "95",
+        "link.output.node": "120",
+        "link.input.node": "63",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 65,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3055",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "99",
+                "link.input.port": "64",
+                "link.output.node": "120",
+                "link.input.node": "63",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3055",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "99",
+        "link.input.port": "64",
+        "link.output.node": "120",
+        "link.input.node": "63",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 132,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3056",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "86",
+                "link.input.port": "95",
+                "link.output.node": "91",
+                "link.input.node": "63",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3056",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "86",
+        "link.input.port": "95",
+        "link.output.node": "91",
+        "link.input.node": "63",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 104,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3057",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "136",
+                "link.input.port": "64",
+                "link.output.node": "91",
+                "link.input.node": "63",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3057",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "136",
+        "link.input.port": "64",
+        "link.output.node": "91",
+        "link.input.node": "63",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 102,
+    permissions: R | W | X | M,
+    type_: Node,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3060",
+                "factory.id": "6",
+                "client.id": "75",
+                "application.name": "WEBRTC VoiceEngine",
+                "node.name": "WEBRTC VoiceEngine",
+                "media.class": "Stream/Output/Audio",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 107,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3061",
+                "object.path": "WEBRTC VoiceEngine:output_0",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "102",
+                "audio.channel": "FL",
+                "port.id": "0",
+                "port.name": "output_FL",
+                "port.direction": "out",
+                "port.alias": "WEBRTC VoiceEngine:output_FL",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 66,
+    permissions: R | W | X | M,
+    type_: Port,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3062",
+                "object.path": "WEBRTC VoiceEngine:output_1",
+                "format.dsp": "32 bit float mono audio",
+                "node.id": "102",
+                "audio.channel": "FR",
+                "port.id": "1",
+                "port.name": "output_FR",
+                "port.direction": "out",
+                "port.alias": "WEBRTC VoiceEngine:output_FR",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 121,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3063",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "107",
+                "link.input.port": "95",
+                "link.output.node": "102",
+                "link.input.node": "63",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3063",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "107",
+        "link.input.port": "95",
+        "link.output.node": "102",
+        "link.input.node": "63",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 44,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3064",
+                "factory.id": "20",
+                "client.id": "33",
+                "link.output.port": "66",
+                "link.input.port": "64",
+                "link.output.node": "102",
+                "link.input.node": "63",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3064",
+        "factory.id": "20",
+        "client.id": "33",
+        "link.output.port": "66",
+        "link.input.port": "64",
+        "link.output.node": "102",
+        "link.input.node": "63",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 141,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3149",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "2033405",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:00326da3fd7f0000132638010000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c9503560000000060000f0000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600002000000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000a8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000a8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000a8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffa8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000a8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f0000a07c6995035600000100000003560000c00000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "helvum",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 92,
+    permissions: R | W | X | M,
+    type_: Link,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3239",
+                "factory.id": "20",
+                "link.output.port": "99",
+                "link.input.port": "117",
+                "link.output.node": "120",
+                "link.input.node": "110",
+            },
+        },
+    ),
+}
+[pipeswitch-lib/src/pw/types.rs:200] props = ForeignDict {
+    flags: (empty),
+    entries: {
+        "object.serial": "3239",
+        "factory.id": "20",
+        "link.output.port": "99",
+        "link.input.port": "117",
+        "link.output.node": "120",
+        "link.input.node": "110",
+    },
+}
+[pipeswitch-lib/src/pw/mod.rs:227] &global = GlobalObject {
+    id: 143,
+    permissions: R | W | X | M,
+    type_: Client,
+    version: 3,
+    props: Some(
+        ForeignDict {
+            flags: (empty),
+            entries: {
+                "object.serial": "3282",
+                "module.id": "2",
+                "pipewire.protocol": "protocol-native",
+                "pipewire.sec.pid": "2094973",
+                "pipewire.sec.uid": "1000",
+                "pipewire.sec.gid": "1000",
+                "pipewire.sec.label": "hex:2096da9503560000000000000000000058326da3fd7f000069a39d00527f000001000000035600000038e0321f1e72b2c0316da3fd7f0000c0316da3fd7f0000c0316da3fd7f000039a49d00527f000050326da3fd7f0000e9ad9d00527f00006c00000000000000989d2f95035600009300000000000000fb239f00527f000060336da3fd7f000073ae9d00527f000000000000000000000038e0321f1e72b250326da3fd7f0000990000000000000050326da3fd7f00008dae9d00527f000050326da3fd7f00000038e0321f1e72b260336da3fd7f0000000000000000000060336da3fd7f000039a49d00527f00000000000000000000a8fc9d00527f000060336da3fd7f000050336da3fd7f0000000000000000000060bda000527f000000000000730000000038e0321f1e72b2000000000000000060336da3fd7f0000f8ab2c950356000060336da3fd7f000094346da3fd7f000048a89d00527f0000f0336da3fd7f0000f0336da3fd7f000050336da3fd7f00000038e0321f1e72b260336da3fd7f0000f0ab2c95035600001800000030000000c0346da3fd7f0000f0336da3fd7f00000038e0321f1e72b2f8ab2c95035600000000000000000000f0ab2c950356000050336da3fd7f0000d0336da3fd7f000073000000000000000000000000000000a8049e00527f0000f0ab2c9503560000000060000f0000006c00000000000000f8ab2c9503560000980000000000000040ac2c95035600002000000000000000e0bda000527f000000000000000000000038e0321f1e72b20000000000000000f0ab2c950356000073000000000000000000000000000000f0ab2c9503560000e5059e00527f000030000000300000000038e0321f1e72b2f0336da3fd7f0000c09b2f9503560000c09b2f9503560000a8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f95035600000038e0321f1e72b2b09d2f9503560000c09b2f95035600000200000000000000a8df2e9503560000f0ab2c9503560000f0ab2c950356000030a62f950356000061604401527f0000a8df2e95035600000800000000000000b0346da3fd7f0000aa704501527f00000200000000000000d8f0630101000000b0346da3fd7f000020000000ffffffffa8df2e950356000069f66301527f00000100000040142f95035600001f1e72b2c0a32f9503560000010000000000000050613201527f000001ab2c9503560000a0992f9503560000042f9d00527f0000c0a32f95035600000100000000000000a8df2e950356000091259d00527f0000c0a32f9503560000fc619d00527f000060346da3fd7f0000f8a32f950356000001000000fd7f000030fc6495035600000100000003560000c00000000000000050a62f9503560000b4356da3fd7f0000",
+                "pipewire.access": "unrestricted",
+                "application.name": "pipeswitchd",
+            },
+        },
+    ),
+}

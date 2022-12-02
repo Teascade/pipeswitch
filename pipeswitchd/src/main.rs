@@ -8,7 +8,7 @@ use config::{load_config_or_default, start_pipeswitch_thread, ConfigListener};
 use log::*;
 use pipeswitch_lib::{
     config::{Config, NodeOrTarget},
-    types::{PipewireObject, Port},
+    types::{Link, PipewireObject, Port},
     Pipeswitch, PipeswitchMessage, PipewireState,
 };
 use regex::Regex;
@@ -24,10 +24,11 @@ struct Rule {
     node: Option<Regex>,
     port: Option<Regex>,
     matching_ports: HashSet<u32>,
+    special_empty_ports: bool,
 }
 
 impl Rule {
-    fn from_node_or_target(name: String, node_or_target: &NodeOrTarget) -> Rule {
+    fn from_node_or_target(name: String, special: bool, node_or_target: &NodeOrTarget) -> Rule {
         match node_or_target {
             NodeOrTarget::NodeName(node_name) => Rule {
                 name,
@@ -35,6 +36,7 @@ impl Rule {
                 node: Some(Regex::from_str(&node_name).unwrap()),
                 port: None,
                 matching_ports: HashSet::new(),
+                special_empty_ports: special,
             },
             NodeOrTarget::Target(t) => Rule {
                 name,
@@ -42,6 +44,7 @@ impl Rule {
                 node: t.node.as_ref().map(|rex| Regex::from_str(&rex).unwrap()),
                 port: t.port.as_ref().map(|rex| Regex::from_str(&rex).unwrap()),
                 matching_ports: HashSet::new(),
+                special_empty_ports: special,
             },
         }
     }
@@ -102,21 +105,19 @@ impl Rule {
         }
         was
     }
+
+    fn ignore_channel(&self, other: &Rule) -> bool {
+        let ports_some = self.port.is_some() || other.port.is_some();
+        !self.special_empty_ports || ports_some
+    }
 }
 
 #[derive(Debug)]
 struct LinkRules {
+    name: String,
     input: Rule,
     output: Rule,
-    special_empty_ports: bool,
-}
-
-impl LinkRules {
-    fn should_connect(&self, port1: &Port, port2: &Port) -> bool {
-        let ports_some = self.input.port.is_some() || self.output.port.is_some();
-        let same_channel = port2.channel == port1.channel;
-        !self.special_empty_ports || ports_some || same_channel
-    }
+    links: HashSet<u32>,
 }
 
 struct PipeswitchDaemon {
@@ -132,13 +133,41 @@ impl PipeswitchDaemon {
         }
     }
 
+    fn new_link(&mut self, link: Link) {
+        if let Some(new_rule_name) = link.rule_name {
+            let mut exists = false;
+            for (rule_name, rule) in self.rules.iter_mut() {
+                if new_rule_name == *rule_name {
+                    rule.links.insert(link.id);
+                    let link_id = link.id;
+                    trace!("Link {link_id} for rule [{rule_name}]");
+                    exists = true;
+                }
+            }
+            if !exists {
+                let link_id = link.id;
+                trace!("Link {link_id} from rule [{new_rule_name}] must be destroyed!");
+                // TODO: Make destroying links possible
+            }
+        }
+    }
+
     fn update_config(&mut self, config: &Config) {
         debug!("Updating config");
         for (name, link) in &config.links {
             let rules = LinkRules {
-                input: Rule::from_node_or_target(name.clone(), &link.input),
-                output: Rule::from_node_or_target(name.clone(), &link.output),
-                special_empty_ports: link.special_empty_ports,
+                name: name.clone(),
+                input: Rule::from_node_or_target(
+                    name.clone(),
+                    link.special_empty_ports,
+                    &link.input,
+                ),
+                output: Rule::from_node_or_target(
+                    name.clone(),
+                    link.special_empty_ports,
+                    &link.output,
+                ),
+                links: HashSet::new(),
             };
             debug!("New link: {name}");
             debug!("{rules:?}");
@@ -146,35 +175,27 @@ impl PipeswitchDaemon {
         }
     }
 
-    fn new_port(&mut self, port: &Port) {
+    fn new_port(&mut self, port: Port) {
         use pipeswitch_lib::types::Direction;
-        let state = self.pipeswitch.lock_current_state();
-        match port.direction {
-            Direction::Input => {
-                for rule in self.rules.values_mut() {
-                    if rule.input.add_if_matches(&port, &state) {
-                        for out_port_id in &rule.output.matching_ports {
-                            let old_port = state.ports.get(&out_port_id).unwrap();
-                            if rule.should_connect(&port, &old_port) {
-                                let np_name = &port.alias;
-                                let op_name = &old_port.alias;
-                                info!("{np_name} should connect to {op_name}")
-                            }
-                        }
-                    }
-                }
-            }
-            Direction::Output => {
-                for rule in self.rules.values_mut() {
-                    if rule.output.add_if_matches(&port, &state) {
-                        for out_port_id in &rule.input.matching_ports {
-                            let old_port = state.ports.get(&out_port_id).unwrap();
-                            if rule.should_connect(&port, &old_port) {
-                                let np_name = &port.alias;
-                                let op_name = &old_port.alias;
-                                info!("{np_name} should connect to {op_name}")
-                            }
-                        }
+        let mut state = self.pipeswitch.lock_current_state();
+        for rule in self.rules.values_mut() {
+            let (r1, r2) = if let Direction::Input = port.direction {
+                (&mut rule.input, &mut rule.output)
+            } else {
+                (&mut rule.output, &mut rule.input)
+            };
+            if r1.add_if_matches(&port, &state) {
+                for old_port_id in &r2.matching_ports {
+                    let old_port = state.ports.get(old_port_id).unwrap().clone();
+                    if r1.ignore_channel(&r2) || port.channel == old_port.channel {
+                        let np_name = &port.alias;
+                        let op_name = &old_port.alias;
+                        info!("{np_name} should connect to {op_name}");
+                        drop(state);
+                        self.pipeswitch
+                            .create_link(port.clone(), old_port, rule.name.clone())
+                            .unwrap();
+                        state = self.pipeswitch.lock_current_state();
                     }
                 }
             }
@@ -198,6 +219,8 @@ impl PipeswitchDaemon {
     }
 }
 
+mod sdl2_signaller;
+
 fn main() {
     let config_path = &Config::default_path().unwrap();
     let config = load_config_or_default(&config_path);
@@ -219,7 +242,8 @@ fn main() {
             Event::Pipeswitch(pw) => {
                 use PipeswitchMessage::*;
                 match pw {
-                    NewObject(PipewireObject::Port(port)) => daemon.new_port(&port),
+                    NewObject(PipewireObject::Port(port)) => daemon.new_port(port),
+                    NewObject(PipewireObject::Link(link)) => daemon.new_link(link),
                     ObjectRemoved(PipewireObject::Port(port)) => daemon.port_deleted(&port),
                     Error(e) => {
                         warn!("{e}")
@@ -234,6 +258,11 @@ fn main() {
             }
         }
     }
+
+    // let (sender, receiver) = channel();
+
+    // let ps = Pipeswitch::new(None).unwrap();
+    // sdl2_signaller::open_window_thread(sender);
 
     // while let Ok(keycode) = receiver.recv() {
     //     println!("starting");
@@ -272,7 +301,7 @@ fn main() {
     //     drop(state);
 
     //     if let (Some(o), Some(i)) = (output, input) {
-    //         let link = ps.create_link(o, i).unwrap();
+    //         let link = ps.create_link(o, i, "hellothere".to_owned()).unwrap();
     //         println!("{link:?}");
     //     }
 
