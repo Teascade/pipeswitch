@@ -1,3 +1,4 @@
+use anyhow::Result;
 use inotify::{Inotify, WatchMask};
 use log::*;
 use pipeswitch_lib::config::Config;
@@ -14,16 +15,16 @@ pub enum Event {
     ConfigModified(Config),
 }
 
-pub fn load_config_or_default(path: &PathBuf) -> Config {
-    if let Some((conf, _)) = Config::load_from(path).unwrap() {
+pub fn load_config_or_default(path: &PathBuf) -> Result<Config> {
+    Ok(if let Some((conf, _)) = Config::load_from(path)? {
         trace!("Found existing config");
         conf
     } else {
-        let (conf, doc) = Config::default_conf().unwrap();
+        let (conf, doc) = Config::default_conf()?;
         trace!("Writing default config");
-        conf.write_to(path, Some(&doc)).unwrap();
+        conf.write_to(path, Some(&doc))?;
         conf
-    }
+    })
 }
 
 pub struct ConfigListener {
@@ -49,10 +50,17 @@ impl ConfigListener {
                     let events = inotify
                         .read_events_blocking(&mut buffer)
                         .expect("Error while reading events");
-                    for _ in events {
-                        sender
-                            .send(Event::ConfigModified(load_config_or_default(&path)))
-                            .unwrap();
+                    for e in events {
+                        match load_config_or_default(&path) {
+                            Ok(cfg) => {
+                                sender
+                                    .send(Event::ConfigModified(cfg))
+                                    .expect("Failed to send ConfigModified");
+                            }
+                            Err(err) => {
+                                error!("Error loading updated config: {err}")
+                            }
+                        };
                     }
                 }
             }
@@ -71,15 +79,15 @@ impl Drop for ConfigListener {
     }
 }
 
-pub fn start_pipeswitch_thread(sender: Sender<Event>) -> (Pipeswitch, JoinHandle<()>) {
+pub fn start_pipeswitch_thread(sender: Sender<Event>) -> Result<(Pipeswitch, JoinHandle<()>)> {
     let (ps_sender, ps_receiver) = channel();
-    let ps = Pipeswitch::new(Some(ps_sender)).unwrap();
-    (
+    let ps = Pipeswitch::new(Some(ps_sender))?;
+    Ok((
         ps,
         std::thread::spawn(move || {
             while let Ok(msg) = ps_receiver.recv() {
                 sender.send(Event::Pipeswitch(msg)).unwrap();
             }
         }),
-    )
+    ))
 }

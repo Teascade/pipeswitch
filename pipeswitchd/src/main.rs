@@ -113,7 +113,7 @@ impl Rule {
                 let alias = &port.alias;
                 let direction = &port.direction;
                 let name = &self.name;
-                debug!("[{name}].{direction:?} + {alias}");
+                debug!("new {direction:?} for [{name}] ({alias})");
                 true
             } else {
                 false
@@ -129,7 +129,7 @@ impl Rule {
             let alias = &port.alias;
             let direction = &port.direction;
             let name = &self.name;
-            debug!("[{name}].{direction:?} - {alias}");
+            debug!("removed {direction:?} from [{name}] ({alias})");
         }
         was
     }
@@ -162,14 +162,18 @@ impl From<(String, LinkConfig)> for LinkRules {
 struct PipeswitchDaemon {
     rules: HashMap<String, LinkRules>,
     pipeswitch: Pipeswitch,
+    linger_links: bool,
 }
 
 impl PipeswitchDaemon {
-    pub fn new(pipeswitch: Pipeswitch) -> Self {
-        PipeswitchDaemon {
+    pub fn new(pipeswitch: Pipeswitch, config: &Config) -> Self {
+        let daemon = PipeswitchDaemon {
             pipeswitch,
             rules: HashMap::default(),
-        }
+            linger_links: false,
+        };
+        daemon.update_config(config);
+        daemon
     }
 
     fn new_link(&mut self, link: Link) {
@@ -179,13 +183,13 @@ impl PipeswitchDaemon {
                 if new_rule_name == *rule_name {
                     rule.links.insert(link.id);
                     let link_id = link.id;
-                    trace!("Link {link_id} for rule [{rule_name}]");
+                    trace!("New link {link_id} for rule [{rule_name}]");
                     exists = true;
                 }
             }
             if !exists {
                 let link_id = link.id;
-                if self.pipeswitch.destroy_link(link).unwrap() {
+                if self.pipeswitch.destroy_link(link).unwrap() && self.linger_links {
                     warn!("old link {link_id} from old config rule [{new_rule_name}] destroyed");
                 }
             }
@@ -204,7 +208,8 @@ impl PipeswitchDaemon {
     }
 
     fn update_config(&mut self, config: &Config) {
-        info!("Updating config..");
+        info!("rechecking config");
+        self.linger_links = config.general.linger_links;
 
         // Contains all of the rule names that still need to be checked.
         let mut dirty_rule_names: HashSet<String> = self
@@ -213,6 +218,10 @@ impl PipeswitchDaemon {
             .chain(config.links.keys())
             .cloned()
             .collect();
+
+        let mut modified_count = 0;
+        let mut new_count = 0;
+        let mut removed_count = 0;
 
         // Go through all new and old rules and destroy any links that do not
         // match up with the new configuration.
@@ -226,7 +235,7 @@ impl PipeswitchDaemon {
             match (curr_rule, new_rule) {
                 (Some(curr), Some(new)) => {
                     if new.input != curr.input || new.output != curr.output {
-                        debug!("rule [{rule_name}] changed, removing links temporarily");
+                        debug!("rule [{rule_name}] changed, removing old links");
                         let mut links = Vec::new();
                         for link_id in &curr.links {
                             let state = self.pipeswitch.lock_current_state();
@@ -236,13 +245,12 @@ impl PipeswitchDaemon {
                         }
                         for link in self.fetch_links(&curr.links) {
                             let link_id = link.id;
-                            if self.pipeswitch.destroy_link(link).unwrap() {
-                                trace!(
-                                    "old rule [{rule_name}] link {link_id} temporarily destroyed"
-                                );
+                            if self.pipeswitch.destroy_link(link).unwrap() && self.linger_links {
+                                warn!("old rule [{rule_name}] link {link_id} destroyed");
                             }
                         }
                         self.rules.insert(rule_name, new);
+                        modified_count += 1;
                     } else {
                         debug!("rule [{rule_name}] was unmodified");
                         dirty_rule_names.remove(&rule_name);
@@ -251,14 +259,16 @@ impl PipeswitchDaemon {
                 (Some(curr), None) => {
                     for link in self.fetch_links(&curr.links) {
                         let link_id = link.id;
-                        if self.pipeswitch.destroy_link(link).unwrap() {
-                            trace!("old rule [{rule_name}] link {link_id} destroyed");
+                        if self.pipeswitch.destroy_link(link).unwrap() && self.linger_links {
+                            warn!("old rule [{rule_name}] link {link_id} destroyed");
                         }
                     }
                     dirty_rule_names.remove(&rule_name);
+                    removed_count += 1;
                 }
                 (None, Some(new)) => {
                     self.rules.insert(rule_name, new);
+                    new_count += 1;
                 }
                 _ => {}
             }
@@ -273,8 +283,16 @@ impl PipeswitchDaemon {
             .collect();
 
         // Goes through all the rule_names that still need to have their ports checked
-        for port in ports {
-            self.new_port_for_rules(port, dirty_rule_names.clone());
+        if dirty_rule_names.len() > 0 {
+            for port in ports {
+                self.new_port_for_rules(port, dirty_rule_names.clone());
+            }
+        }
+
+        if new_count + removed_count + modified_count > 0 {
+            info!("config updated. {new_count} new, {removed_count} removed and {modified_count} modified rules.");
+        } else {
+            info!("no changes in config.");
         }
     }
 
@@ -321,13 +339,21 @@ impl PipeswitchDaemon {
                 for old_port_id in &r2.matching_ports {
                     let old_port = state.ports.get(old_port_id).unwrap().clone();
                     if r1.ignore_channel(&r2) || port.channel == old_port.channel {
-                        let np_name = &port.alias;
-                        let op_name = &old_port.alias;
-                        info!("Connecting {np_name} to {op_name}");
+                        let op_alias = old_port.alias.clone();
+                        let (i_name, o_name) = if let Direction::Input = port.direction {
+                            (&port.alias, &op_alias)
+                        } else {
+                            (&op_alias, &port.alias)
+                        };
                         drop(state);
-                        self.pipeswitch
+                        if let Some(link) = self
+                            .pipeswitch
                             .create_link(port.clone(), old_port, rule.name.clone())
-                            .unwrap();
+                            .unwrap()
+                        {
+                            let link_id = link.id;
+                            info!("connected {o_name} to {i_name} ({link_id})");
+                        }
                         state = self.pipeswitch.lock_current_state();
                     }
                 }
@@ -338,7 +364,9 @@ impl PipeswitchDaemon {
 
 fn main() {
     let config_path = &Config::default_path().unwrap();
-    let config = load_config_or_default(&config_path);
+    let config = load_config_or_default(&config_path)
+        .map_err(|e| panic!("Failed to load Config at startup: {e}"))
+        .unwrap();
 
     stderrlog::new()
         .module(module_path!())
@@ -347,9 +375,10 @@ fn main() {
         .unwrap();
     let (sender, receiver) = channel();
 
-    let (pipeswitch, _join) = start_pipeswitch_thread(sender.clone());
-    let mut daemon = PipeswitchDaemon::new(pipeswitch);
-    daemon.update_config(&config);
+    let (pipeswitch, _join) = start_pipeswitch_thread(sender.clone())
+        .map_err(|e| panic!("Failed to start listening to Pipewire: {e}"))
+        .unwrap();
+    let mut daemon = PipeswitchDaemon::new(pipeswitch, &config);
 
     let _listener = ConfigListener::start(&config_path, sender.clone());
     while let Ok(event) = receiver.recv() {
@@ -369,7 +398,6 @@ fn main() {
             }
             Event::ConfigModified(conf) => {
                 daemon.update_config(&conf);
-                dbg!("hello??");
             }
         }
     }
