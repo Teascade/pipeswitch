@@ -11,7 +11,7 @@ use pipeswitch_lib::{
     types::{Link, PipewireObject, Port},
     Pipeswitch, PipeswitchMessage, PipewireState,
 };
-use regex::Regex;
+use regex::{Regex, RegexBuilder};
 
 use crate::config::Event;
 
@@ -33,16 +33,36 @@ impl Rule {
             NodeOrTarget::NodeName(node_name) => Rule {
                 name,
                 client: None,
-                node: Some(Regex::from_str(&node_name).unwrap()),
+                node: Some(
+                    RegexBuilder::new(&node_name)
+                        .case_insensitive(true)
+                        .build()
+                        .unwrap(),
+                ),
                 port: None,
                 matching_ports: HashSet::new(),
                 special_empty_ports: special,
             },
             NodeOrTarget::Target(t) => Rule {
                 name,
-                client: t.client.as_ref().map(|rex| Regex::from_str(&rex).unwrap()),
-                node: t.node.as_ref().map(|rex| Regex::from_str(&rex).unwrap()),
-                port: t.port.as_ref().map(|rex| Regex::from_str(&rex).unwrap()),
+                client: t.client.as_ref().map(|rex| {
+                    RegexBuilder::new(&rex)
+                        .case_insensitive(true)
+                        .build()
+                        .unwrap()
+                }),
+                node: t.node.as_ref().map(|rex| {
+                    RegexBuilder::new(&rex)
+                        .case_insensitive(true)
+                        .build()
+                        .unwrap()
+                }),
+                port: t.port.as_ref().map(|rex| {
+                    RegexBuilder::new(&rex)
+                        .case_insensitive(true)
+                        .build()
+                        .unwrap()
+                }),
                 matching_ports: HashSet::new(),
                 special_empty_ports: special,
             },
@@ -146,7 +166,7 @@ impl PipeswitchDaemon {
             }
             if !exists {
                 let link_id = link.id;
-                trace!("Link {link_id} from rule [{new_rule_name}] must be destroyed!");
+                warn!("Link {link_id} from rule [{new_rule_name}] must be destroyed!");
                 // TODO: Make destroying links possible
             }
         }
@@ -154,6 +174,8 @@ impl PipeswitchDaemon {
 
     fn update_config(&mut self, config: &Config) {
         debug!("Updating config");
+        // TODO: Check for any new link names or deleted ones. Destroy links for
+        // deleted links.
         for (name, link) in &config.links {
             let rules = LinkRules {
                 name: name.clone(),
@@ -173,7 +195,10 @@ impl PipeswitchDaemon {
             debug!("{rules:?}");
             self.rules.insert(name.clone(), rules);
         }
-        // TODO: Go through all rules/ports/links again!
+        // TODO: After checking for link-name differences, go through all links,
+        // clear the port-cache and re-create port caches by going through all
+        // ports again. If any differences emerge, destroy all related links and
+        // re-form them.
     }
 
     fn new_port(&mut self, port: Port) {
