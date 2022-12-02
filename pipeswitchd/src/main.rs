@@ -11,7 +11,6 @@ use pipeswitch_lib::{
     Pipeswitch, PipeswitchMessage, PipewireError, PipewireState,
 };
 use regex::{Regex, RegexBuilder};
-use sdl2::libc::linger;
 
 use crate::config::Event;
 
