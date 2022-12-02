@@ -24,7 +24,7 @@ jobs:
     - name: Post-process
       run: |
         strip target/release/pipeswitchd
-        cd target/release/pipeswitchd
+        cd target/release/
         zip pipeswitchd.zip pipeswitchd
         cd ../../
         mv target/release/pipeswitchd.zip pipeswitchd.zip
