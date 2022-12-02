@@ -1,4 +1,6 @@
 # Pipeswitch
+[![dev](https://github.com/Teascade/pipeswitch/actions/workflows/dev.yml/badge.svg)](https://github.com/Teascade/pipeswitch/actions/workflows/dev.yml)
+
 Daemon for [PipeWire][pipewire] that automatically links audio inputs and
 outputs based on regex for similarly to how [QjackCtl][qjackctl]'s patchbay
 works on Jack.
