@@ -12,7 +12,7 @@ level = "info"
 
 # Default link. You may delete me!
 [link.some_default_link]
-in = { client = "client_1", node = "node_1" }
-out = "Hello there!"
+source = "Hello there!"
+sink = { client = "client_1", node = "node_1" }
 # Optional per-link config  
 #  special_empty_ports = true

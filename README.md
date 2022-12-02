@@ -66,10 +66,10 @@ level = "info"
 [link.some_default_link]
 
 # Objects have client, node and port -fields, all of which are optional
-in = { client = "client_1", node = "node_1" }
+source = { client = "client_1", node = "node_1" }
 
 # Strings always refer to only the node-name.
-out = "Hello there!"
+sink = "Hello there!"
 
 # Optional per-link config  
 # if true (default), and ports are not specified in the object-notation, ports
@@ -79,8 +79,8 @@ special_empty_ports = true
 
 # A second link for the sake of demonstration
 [link.second_link]
-in = "Some input"
-out = "Hello there!"
+source = "Hello there!"
+sink = "Some source"
 ```
 
 You can preview what inputs/outputs are currently available with `pw-link -o`
