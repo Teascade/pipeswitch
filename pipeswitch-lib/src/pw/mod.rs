@@ -16,8 +16,6 @@ use thiserror::Error;
 
 pub mod types;
 
-use pipewire::prelude::*;
-
 use types::VERSION;
 
 use crate::PipeswitchMessage;

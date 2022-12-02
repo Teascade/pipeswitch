@@ -1,6 +1,5 @@
 use std::{
     collections::{HashMap, HashSet},
-    str::FromStr,
     sync::mpsc::channel,
 };
 
@@ -244,8 +243,6 @@ impl PipeswitchDaemon {
         }
     }
 }
-
-mod sdl2_signaller;
 
 fn main() {
     let config_path = &Config::default_path().unwrap();
