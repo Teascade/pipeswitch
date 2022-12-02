@@ -16,6 +16,8 @@ use thiserror::Error;
 
 pub mod types;
 
+use pipewire::prelude::*;
+
 use types::VERSION;
 
 use crate::PipeswitchMessage;
@@ -110,7 +112,7 @@ impl PipewireState {
 #[derive(Debug)]
 pub(crate) enum MainloopActions {
     Terminate,
-    CreateLink(String, Port, Port),
+    CreateLink(String, Port, Port, String),
 }
 
 #[derive(Debug)]
@@ -131,7 +133,8 @@ pub(crate) fn mainloop(
     let mainloop = MainLoop::new()?;
     let context = Context::new(&mainloop)?;
     let core = context.connect(None)?;
-    let registry = core.get_registry()?;
+
+    let registry = Arc::new(core.get_registry()?);
 
     let pending_seq = Rc::new(Mutex::new(None));
     let link_info: Rc<Mutex<HashMap<u32, Link>>> = Rc::new(Mutex::new(HashMap::new()));
@@ -146,13 +149,14 @@ pub(crate) fn mainloop(
         let proxies = proxy_map.clone();
         move |action| match action {
             MainloopActions::Terminate => mainloop.quit(),
-            MainloopActions::CreateLink(factory_name, output, input) => {
+            MainloopActions::CreateLink(factory_name, output, input, rule_name) => {
                 let props = pipewire::properties! {
                     *pipewire::keys::LINK_OUTPUT_NODE => output.node_id.to_string(),
                     *pipewire::keys::LINK_OUTPUT_PORT => output.id.to_string(),
                     *pipewire::keys::LINK_INPUT_NODE => input.node_id.to_string(),
                     *pipewire::keys::LINK_INPUT_PORT => input.id.to_string(),
-                    "object.linger" => "1"
+                    "object.linger" => "1",
+                    types::KEY_RULE_NAME => rule_name
                 };
                 let proxy = core
                     .create_object::<pipewire::link::Link, _>(&factory_name, &props)
@@ -171,10 +175,7 @@ pub(crate) fn mainloop(
                             let link_info = link_info.clone();
                             move |info| {
                                 let mut info_lock = link_info.lock().unwrap();
-                                info_lock.insert(
-                                    proxy_id,
-                                    Link::from_props(info.id(), info.props()).unwrap(),
-                                );
+                                info_lock.insert(proxy_id, Link::from_link_info(info).unwrap());
                             }
                         })
                         .register();
@@ -217,31 +218,72 @@ pub(crate) fn mainloop(
         })
         .register();
 
+    let link_listeners = Arc::new(Mutex::new(HashMap::new()));
+
     let _listener = registry
         .add_listener_local()
         .global({
             let state = state.clone();
             let sender = sender.clone();
-            move |global| match PipewireObject::from_global(global) {
-                Ok(Some(obj)) => {
-                    let result = state
-                        .lock()
-                        .unwrap()
-                        .process_message(PipewireMessage::NewGlobal(
-                            global.id,
-                            global.type_.clone(),
-                            obj,
-                        ));
-                    if let (Some(sender), Some(result)) = (&sender, result) {
-                        sender.send(PipeswitchMessage::NewObject(result)).unwrap();
-                    }
+            let registry = registry.clone();
+            move |global| match global.type_ {
+                ObjectType::Link => {
+                    let proxy: pipewire::link::Link = registry.bind(&global).unwrap();
+                    let proxy_id = proxy.upcast_ref().id();
+                    link_listeners.lock().unwrap().insert(
+                        proxy_id,
+                        (
+                            proxy
+                                .add_listener_local()
+                                .info({
+                                    let link_listeners = link_listeners.clone();
+                                    let state = state.clone();
+                                    let sender = sender.clone();
+                                    move |info| {
+                                        let result = state.lock().unwrap().process_message(
+                                            PipewireMessage::NewGlobal(
+                                                info.id(),
+                                                ObjectType::Link,
+                                                PipewireObject::Link(
+                                                    Link::from_link_info(info).unwrap(),
+                                                ),
+                                            ),
+                                        );
+                                        link_listeners.lock().unwrap().remove(&proxy_id);
+                                        if let (Some(sender), Some(result)) = (&sender, result) {
+                                            sender
+                                                .send(PipeswitchMessage::NewObject(result))
+                                                .unwrap();
+                                        }
+                                    }
+                                })
+                                .register(),
+                            proxy,
+                        ),
+                    );
                 }
-                Err(e) => {
-                    if let Some(sender) = &sender {
-                        sender.send(PipeswitchMessage::Error(e)).unwrap();
+                _ => match PipewireObject::from_global(global) {
+                    Ok(Some(obj)) => {
+                        let result =
+                            state
+                                .lock()
+                                .unwrap()
+                                .process_message(PipewireMessage::NewGlobal(
+                                    global.id,
+                                    global.type_.clone(),
+                                    obj,
+                                ));
+                        if let (Some(sender), Some(result)) = (&sender, result) {
+                            sender.send(PipeswitchMessage::NewObject(result)).unwrap();
+                        }
                     }
-                }
-                _ => {}
+                    Err(e) => {
+                        if let Some(sender) = &sender {
+                            sender.send(PipeswitchMessage::Error(e)).unwrap();
+                        }
+                    }
+                    _ => {}
+                },
             }
         })
         .global_remove(move |global_id| {

@@ -88,7 +88,12 @@ impl Pipeswitch {
         self.pipewire_state.lock().unwrap()
     }
 
-    pub fn create_link(&self, port1: Port, port2: Port) -> Result<Option<Link>, PipeswitchError> {
+    pub fn create_link(
+        &self,
+        port1: Port,
+        port2: Port,
+        rule_name: String,
+    ) -> Result<Option<Link>, PipeswitchError> {
         use types::Direction::*;
         // Check for double inputs and double outputs
         match (&port1.direction, &port2.direction) {
@@ -113,7 +118,12 @@ impl Pipeswitch {
         drop(lock);
 
         self.sender
-            .send(MainloopActions::CreateLink(factory_name, input, output))
+            .send(MainloopActions::CreateLink(
+                factory_name,
+                output,
+                input,
+                rule_name,
+            ))
             .map_err(|_| PipeswitchError::CriticalThreadFailure("Failed to send create link"))
             .unwrap();
 

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use pipewire::{
     keys::*,
+    link::LinkInfo,
     registry::GlobalObject,
     spa::{ForeignDict, ReadableDict},
     types::ObjectType,
@@ -10,6 +11,7 @@ use pipewire::{
 use super::PipewireError;
 
 pub const VERSION: u32 = 3;
+pub const KEY_RULE_NAME: &str = "pipeswitch.rule.name";
 
 type PwIdType = u32;
 
@@ -172,37 +174,35 @@ pub struct Link {
     pub output_port: PwIdType,
     pub input_node: PwIdType,
     pub input_port: PwIdType,
+    pub rule_name: Option<String>,
 }
 
 impl Link {
-    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
-        Link::from_props(global.id, global.props.as_ref())
-    }
-
-    pub fn from_props(id: u32, props: Option<&ForeignDict>) -> Result<Self, PipewireError> {
-        let props = props.ok_or(PipewireError::MissingProps(
-            id,
+    pub fn from_link_info(link_info: &LinkInfo) -> Result<Self, PipewireError> {
+        let props = link_info.props();
+        let props = link_info.props().ok_or(PipewireError::MissingProps(
+            link_info.id(),
             ObjectType::Link,
             map_props(props.as_ref().unwrap()),
         ))?;
         let get_prop = |property| props.get(property).map(|v| v.to_string());
         let get_prop_or = |property| {
             get_prop(property).ok_or(PipewireError::PropNotFound(
-                id,
+                link_info.id(),
                 ObjectType::Link,
                 map_props(props),
                 property,
             ))
         };
-
         Ok(Link {
-            id,
+            id: link_info.id(),
             factory_id: get_prop_or(*FACTORY_ID)?.parse()?,
             client_id: get_prop(*CLIENT_ID).map(|v| v.parse()).transpose()?,
-            output_node: get_prop_or(*LINK_OUTPUT_NODE)?.parse()?,
-            output_port: get_prop_or(*LINK_OUTPUT_PORT)?.parse()?,
-            input_node: get_prop_or(*LINK_INPUT_NODE)?.parse()?,
-            input_port: get_prop_or(*LINK_INPUT_PORT)?.parse()?,
+            output_node: link_info.output_node_id(),
+            output_port: link_info.output_port_id(),
+            input_node: link_info.input_node_id(),
+            input_port: link_info.input_port_id(),
+            rule_name: get_prop(KEY_RULE_NAME),
         })
     }
 }
@@ -300,7 +300,6 @@ impl PipewireObject {
         match global.type_ {
             ObjectType::Port => Ok(Some(Self::Port(Port::from_global(global)?))),
             ObjectType::Node => Ok(Some(Self::Node(Node::from_global(global)?))),
-            ObjectType::Link => Ok(Some(Self::Link(Link::from_global(global)?))),
             ObjectType::Client => Ok(Some(Self::Client(Client::from_global(global)?))),
             ObjectType::Factory => Ok(Some(Self::Factory(Factory::from_global(global)?))),
             _ => Ok(None),
