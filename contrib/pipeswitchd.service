@@ -1,0 +1,11 @@
+[Unit]
+Description=Pipeswitch Daemon
+Documentation=https://github.com/Teascade/pipeswitch
+BindsTo=pipewire.service
+
+[Service]
+ExecStart=/usr/bin/pipeswitchd
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
