@@ -17,6 +17,56 @@ use crate::rules::*;
 mod config;
 mod rules;
 
+fn main() {
+    let config_path = &Config::default_path().unwrap();
+    let config = load_config_or_default(config_path)
+        .map_err(|e| panic!("Failed to load Config at startup: {e}"))
+        .unwrap();
+
+    stderrlog::new()
+        .module(module_path!())
+        .verbosity(config.log.level)
+        .timestamp(stderrlog::Timestamp::Second)
+        .init()
+        .unwrap();
+    let (sender, receiver) = channel();
+
+    let (pipeswitch, _join) = start_pipeswitch_thread(sender.clone())
+        .map_err(|e| panic!("Failed to start listening to Pipewire: {e}"))
+        .unwrap();
+    let mut daemon = PipeswitchDaemon::new(pipeswitch, &config);
+
+    let mut _listener = None;
+    if config.general.hotreload_config {
+        _listener = Some(ConfigListener::start(config_path, sender));
+    }
+
+    while let Ok(event) = receiver.recv() {
+        match event {
+            Event::Pipeswitch(pw) => {
+                use PipeswitchMessage::*;
+                match pw {
+                    NewObject(Object::Port(port)) => daemon.new_port(port),
+                    NewObject(Object::Link(link)) => daemon.new_link(link),
+                    ObjectRemoved(Object::Port(port)) => daemon.port_deleted(&port),
+                    ObjectRemoved(Object::Link(link)) => daemon.link_deleted(&link),
+                    Error(e) => {
+                        if let PipewireError::PropNotFound(..) = e {
+                            warn!("{e}")
+                        } else {
+                            error!("{e}")
+                        }
+                    }
+                    _ => (),
+                }
+            }
+            Event::ConfigModified(conf) => {
+                daemon.update_config(&conf);
+            }
+        }
+    }
+}
+
 struct PipeswitchDaemon {
     rules: HashMap<String, LinkRules>,
     pipeswitch: Pipeswitch,
@@ -245,56 +295,6 @@ impl PipeswitchDaemon {
                         state = self.pipeswitch.lock_current_state();
                     }
                 }
-            }
-        }
-    }
-}
-
-fn main() {
-    let config_path = &Config::default_path().unwrap();
-    let config = load_config_or_default(config_path)
-        .map_err(|e| panic!("Failed to load Config at startup: {e}"))
-        .unwrap();
-
-    stderrlog::new()
-        .module(module_path!())
-        .verbosity(config.log.level)
-        .timestamp(stderrlog::Timestamp::Second)
-        .init()
-        .unwrap();
-    let (sender, receiver) = channel();
-
-    let (pipeswitch, _join) = start_pipeswitch_thread(sender.clone())
-        .map_err(|e| panic!("Failed to start listening to Pipewire: {e}"))
-        .unwrap();
-    let mut daemon = PipeswitchDaemon::new(pipeswitch, &config);
-
-    let mut _listener = None;
-    if config.general.hotreload_config {
-        _listener = Some(ConfigListener::start(config_path, sender));
-    }
-
-    while let Ok(event) = receiver.recv() {
-        match event {
-            Event::Pipeswitch(pw) => {
-                use PipeswitchMessage::*;
-                match pw {
-                    NewObject(Object::Port(port)) => daemon.new_port(port),
-                    NewObject(Object::Link(link)) => daemon.new_link(link),
-                    ObjectRemoved(Object::Port(port)) => daemon.port_deleted(&port),
-                    ObjectRemoved(Object::Link(link)) => daemon.link_deleted(&link),
-                    Error(e) => {
-                        if let PipewireError::PropNotFound(..) = e {
-                            warn!("{e}")
-                        } else {
-                            error!("{e}")
-                        }
-                    }
-                    _ => (),
-                }
-            }
-            Event::ConfigModified(conf) => {
-                daemon.update_config(&conf);
             }
         }
     }
