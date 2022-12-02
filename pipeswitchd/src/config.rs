@@ -50,7 +50,7 @@ impl ConfigListener {
                     let events = inotify
                         .read_events_blocking(&mut buffer)
                         .expect("Error while reading events");
-                    for e in events {
+                    for _ in events {
                         match load_config_or_default(&path) {
                             Ok(cfg) => {
                                 sender
