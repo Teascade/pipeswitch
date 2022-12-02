@@ -1,15 +1,9 @@
 name: release
 
-# on:
-#   release:
-#     types: [published]
-
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
+    tags:
+      - "v*.*.*"
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,6 +14,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install Pipewire
+      run: |
+        sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu `lsb_release -sc` main universe restricted multiverse"
+        sudo apt-get update -y -qq
+        sudo apt-get install libpipewire-0.3-dev
     - name: Build
       run: cargo build --release
     - name: Post-process
@@ -32,7 +31,7 @@ jobs:
       with:
         name: pipeswitchd.zip
         path: pipeswitchd.zip
-    # - name: Release
-    #   uses: softprops/action-gh-release@v1
-    #   with:
-    #     files: pipeswitchd.zip
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: pipeswitchd.zip
