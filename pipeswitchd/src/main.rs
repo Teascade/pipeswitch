@@ -148,6 +148,7 @@ impl PipeswitchDaemon {
             match (curr_rule, new_rule) {
                 (Some(curr), Some(mut new)) => {
                     if new.input != curr.input || new.output != curr.output {
+                        // Same rule exists, but has changed
                         debug!("rule [{rule_name}] changed");
                         if self.linger_links {
                             new.links.extend(&curr.links);
@@ -162,6 +163,8 @@ impl PipeswitchDaemon {
                         self.rules.insert(rule_name, new);
                         modified_count += 1;
                     } else {
+                        // Same rule exists and has not changed
+                        // Check for lingering links anyway
                         if linger_changed && !self.linger_links {
                             info!("deleting old lingered links");
                             for link in self.fetch_links(&curr.links) {
@@ -180,6 +183,7 @@ impl PipeswitchDaemon {
                     }
                 }
                 (Some(curr), None) => {
+                    // Previous config had a rule which this one does not.
                     for link in self.fetch_links(&curr.links) {
                         let link_id = link.id;
                         if !self.linger_links && self.pipeswitch.destroy_link(link).unwrap() {
@@ -190,6 +194,7 @@ impl PipeswitchDaemon {
                     removed_count += 1;
                 }
                 (None, Some(new)) => {
+                    // New config has a rule previous config did not.
                     self.rules.insert(rule_name, new);
                     new_count += 1;
                 }
@@ -206,7 +211,8 @@ impl PipeswitchDaemon {
             .collect();
 
         // Goes through all the rule_names that still need to have their ports checked
-        if dirty_rule_names.is_empty() {
+        if !dirty_rule_names.is_empty() {
+            trace!("re-checking following rules: {dirty_rule_names:?}");
             for port in ports {
                 self.new_port_for_rules(port, dirty_rule_names.clone());
             }
@@ -225,13 +231,15 @@ impl PipeswitchDaemon {
         if lingering_links > 0 {
             messages.push(format!("{lingering_links} lingering links destroyed"))
         }
-        if linger_changed || messages.is_empty() {
+        if linger_changed || !messages.is_empty() {
             let mut message = vec!["config updated".to_owned()];
-            if messages.is_empty() {
+            if !messages.is_empty() {
                 message.push(messages.join(", "))
             }
             info!("{}", message.join(": "));
         }
+
+        debug!("config checked");
     }
 
     fn new_port(&mut self, port: Port) {
@@ -267,7 +275,10 @@ impl PipeswitchDaemon {
     fn new_port_for_rules(&mut self, port: Port, rules: HashSet<String>) {
         use pipeswitch_lib::types::Direction;
         let mut state = self.pipeswitch.lock_current_state();
-        for (_, rule) in self.rules.iter_mut().filter(|(n, _)| rules.contains(*n)) {
+        for (_, rule) in self.rules.iter_mut().filter(|(n, _)| {
+            // dbg!(&n, &rules, rules.contains(*n));
+            rules.contains(*n)
+        }) {
             let (r1, r2) = if let Direction::Input = port.direction {
                 (&mut rule.input, &mut rule.output)
             } else {
