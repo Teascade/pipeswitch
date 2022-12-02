@@ -93,25 +93,33 @@ impl Config {
             document
                 .remove("general")
                 .and_then(|v| v.into_table().ok())
-                .ok_or(PipeswitchError::Unknown)?,
+                .ok_or(PipeswitchError::ConfigMalformed(
+                    "can't convert 'general' into a table",
+                ))?,
         );
         // Log
         let log_item = Item::Table(
             document
                 .remove("log")
                 .and_then(|v| v.into_table().ok())
-                .ok_or(PipeswitchError::Unknown)?,
+                .ok_or(PipeswitchError::ConfigMalformed(
+                    "can't convert 'log' into a table",
+                ))?,
         );
         // Link
         let mut link_item = table();
-        let tableref = link_item.as_table_mut().ok_or(PipeswitchError::Unknown)?;
+        let tableref = link_item.as_table_mut().unwrap();
         tableref.set_implicit(true);
         for (internal_string, val) in document
             .remove("link")
             .and_then(|v| v.into_table().ok())
-            .ok_or(PipeswitchError::Unknown)?
+            .ok_or(PipeswitchError::ConfigMalformed(
+                "can't convert 'link' into a table",
+            ))?
         {
-            let table_item = Item::Table(val.into_table().map_err(|_| PipeswitchError::Unknown)?);
+            let table_item = Item::Table(val.into_table().map_err(|_| {
+                PipeswitchError::ConfigMalformed("can't convert link item into a table")
+            })?);
             tableref.insert(&internal_string, table_item);
         }
         // Insert them all

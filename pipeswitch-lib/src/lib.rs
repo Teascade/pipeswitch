@@ -40,6 +40,8 @@ pub enum PipeswitchError {
     DoubleInputPort(Box<Port>, Box<Port>),
     #[error("given ports are both output: {0:?}, {1:?}")]
     DoubleOutputPort(Box<Port>, Box<Port>),
+    #[error("unable to re-form config: {0}")]
+    ConfigMalformed(&'static str),
     #[cfg(debug_assertions)]
     #[error("unknown error")]
     Unknown,
