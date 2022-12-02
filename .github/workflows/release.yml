@@ -23,11 +23,14 @@ jobs:
       run: cargo build --release
     - name: Post-process
       run: |
+        mkdir dist
+        cp contrib/pipeswitchd.service dist
         strip target/release/pipeswitchd
-        cd target/release/
-        zip pipeswitchd.zip pipeswitchd
-        cd ../../
-        mv target/release/pipeswitchd.zip pipeswitchd.zip
+        mv target/release/pipeswitchd dist
+        cd dist
+        zip pipeswitchd.zip *
+        cd ../
+        mv dist/pipeswitchd.zip pipeswitchd.zip
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
