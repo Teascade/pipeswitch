@@ -307,15 +307,25 @@ impl PipeswitchDaemon {
             }
         }
 
-        let total_count = new_count + removed_count + modified_count + lingering_links;
-        if linger_changed || total_count > 0 {
-            info!("config updated");
-            if total_count > 0 {
-                info!(
-                    "{new_count} new, {removed_count} removed, {modified_count} \
-                    modified rules and {lingering_links} lingering links destroyed."
-                )
+        let mut messages = Vec::new();
+        if new_count > 0 {
+            messages.push(format!("{new_count} new rules"))
+        }
+        if removed_count > 0 {
+            messages.push(format!("{removed_count} removed rules"))
+        }
+        if modified_count > 0 {
+            messages.push(format!("{modified_count} modified rules"))
+        }
+        if lingering_links > 0 {
+            messages.push(format!("{lingering_links} lingering links destroyed"))
+        }
+        if linger_changed || messages.len() > 0 {
+            let mut message = vec!["config updated".to_owned()];
+            if messages.len() > 0 {
+                message.push(messages.join(", "))
             }
+            info!("{}", message.join(": "));
         }
     }
 
