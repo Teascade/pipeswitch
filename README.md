@@ -37,7 +37,8 @@ linger_links = false
 hotreload_config = true
 
 [log]
-level = "trace"
+# trace / debug / info / warn / error
+level = "info"
 
 # In and out share the same syntax, both can be expressed as objects or strings.
 # Client, Node and Port are technical terms in Pipewire.  
