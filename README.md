@@ -1,48 +1,69 @@
 # Pipeswitch
-Daemon for [PipeWire][pipewire] that automatically links audio inputs and outputs
-based on regex for similarly to how [QjackCtl][qjackctl]'s patchbay works on
-Jack.
+Daemon for [PipeWire][pipewire] that automatically links audio inputs and
+outputs based on regex for similarly to how [QjackCtl][qjackctl]'s patchbay
+works on Jack.
 
-Written to run with `/bin/bash` that watches any new devices, inputs or outputs
-logged by `pw-link`, and links them appropriately.
+Written entirely in Rust using [official pipewire-bindings][pipewire-bindings],
+by implementing listeners similar to those provided by `pw-link`.
 
 If you're looking for an interactive albeit non-automatic graph GUI for
 PipeWire, you might want to check out [Helvum][helvum]
 
-Currently not taking in outside contributions as this is being re-written with
-rust with a GUI to manage the configuration file. 
-
 ## Features
-- Works well as a single service running in the system background
-- Is able to update config contents at runtime¹
-- Accepts RegEx for matching inputs and outputs
-
-¹: any new links added in the config will only be linked if either of the
-      devices is re-introduced for the monitor or the service restarted.
+- Works as a single service running in the system background
+- Lightning fast
+- Is able to hot-reload configuration
+    - Optionally destroys links that are no longer configured and
+    - Creates new links
+- Accepts RegEx for matching inputs and outputs. Able to match client-name,
+  node-name and port-names seperately. (Node-name is usually the one you want,
+  and the one listed ie. in Helvum)
+    - If port-name is not specified, has an option to link ports according to
+      their channel (so left-ear matches left-ear)
+    - RegEx always expects to match the whole client/node/port-name. (Node-name,
+      if in/out is simply a string)
 
 ## Config
-Configuration is done with a `json` file that is located at
-`$XDG_CONFIG_HOME/pipeswitch.json`
+Configuration is done with a `toml` file that is located at
+`$XDG_CONFIG_HOME/pipeswitch.toml`
 
 The format is following:
-```json
-{
-    "print_links": true, // Prints the links that pipeswitch does
-    "debug": false,      // Prints debug information. Currently just all device events
-    "links": {
-        // key:value pairs of the links you want.
-        // key = RegEx of the linked output channel. List with pw-link -o
-        // value = RegEx of the linked input channel. List with pw-link -i
-        "ExampleFLRegex": "Some Headphones:in_1",
-        "ExampleFRRegex": "Some Headphones:in_2"
-    }
-}
+```toml
+# Comments made here should persist through automatic edits.
+[general]
+# keep links that dont exist in the config anymore
+linger_links = false
+# inotify listen config and reload when it changes
+hotreload_config = true
+
+[log]
+level = "trace"
+
+# In and out share the same syntax, both can be expressed as objects or strings.
+# Client, Node and Port are technical terms in Pipewire.  
+# Always always you're interested in only the Node.
+[link.some_default_link]
+
+# Objects have client, node and port -fields, all of which are optional
+in = { client = "client_1", node = "node_1" }
+
+# Strings always refer to only the node-name.
+out = "Hello there!"
+
+# Optional per-link config  
+# if true (default), and ports are not specified in the object-notation, ports
+# are connected if they are in the same channel. Left goes into Left, Right into
+# Right. Mono only connects to mono even in this special case.
+special_empty_ports = true
+
+# A second link for the sake of demonstration
+[link.second_link]
+in = "Some input"
+out = "Hello there!"
 ```
 
-If a device has two channels (such as FR/FL), it is usually desirable to create
-individual links for both channels.
-
-You can preview what inputs/outputs are currently available with `pw-link -o` and `pw-link -i`
+You can preview what inputs/outputs are currently available with `pw-link -o`
+and `pw-link -i` or using Helvum. Note: `pw-link` lists both node-names and port-names.
 
 ## License
 This project is licensed under the [GNU General Public License v3](./LICENSE)
@@ -50,3 +71,4 @@ This project is licensed under the [GNU General Public License v3](./LICENSE)
 [pipewire]: https://pipewire.org/
 [qjackctl]: https://qjackctl.sourceforge.io/
 [helvum]: https://gitlab.freedesktop.org/pipewire/helvum
+[pipewire-bindings]: https://crates.io/crates/pipewire

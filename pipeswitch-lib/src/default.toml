@@ -1,4 +1,5 @@
 # Comments made here should persist through automatic edits.
+# Need help? https://github.com/Teascade/pipeswitch/blob/main/README.md#config
 [general]
 # keep links that dont exist in the config anymore
 linger_links = false
@@ -8,17 +9,9 @@ hotreload_config = true
 [log]
 level = "trace"
 
-# Default link. You may delete me!  
-# In and out share the same syntax, both can be expressed as objects or strings.
-# Client, Node and Port are technical terms in Pipewire.  
-# Always always you're interested in only the Node.
+# Default link. You may delete me!
 [link.some_default_link]
-# Objects have client, node and port -fields, all of which are optional
 in = { client = "client_1", node = "node_1" }
-# Strings always refer to only the node-name.
 out = "Hello there!"
-
 # Optional per-link config  
-# if false, empty port fields on both sides are never treated in a special
-# manner channel-wise.  
-# special_empty_ports = true
+#  special_empty_ports = true
