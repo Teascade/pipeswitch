@@ -37,9 +37,9 @@ pub enum PipeswitchError {
     #[error("failure in background thread: {0}")]
     CriticalThreadFailure(&'static str),
     #[error("given ports are both input: {0:?}, {1:?}")]
-    DoubleInputPort(Port, Port),
+    DoubleInputPort(Box<Port>, Box<Port>),
     #[error("given ports are both output: {0:?}, {1:?}")]
-    DoubleOutputPort(Port, Port),
+    DoubleOutputPort(Box<Port>, Box<Port>),
     #[cfg(debug_assertions)]
     #[error("unknown error")]
     Unknown,
@@ -70,7 +70,7 @@ impl Pipeswitch {
         let state_clone = pipewire_state.clone();
 
         let join_handle = std::thread::spawn(move || {
-            mainloop(sender, ps_sender, pw_receiver, state_clone.clone())
+            mainloop(sender, ps_sender, pw_receiver, state_clone)
                 .map_err(|_| {
                     PipeswitchError::CriticalThreadFailure("Background thread died unexpectedly")
                 })
@@ -99,8 +99,18 @@ impl Pipeswitch {
         use types::Direction::*;
         // Check for double inputs and double outputs
         match (&port1.direction, &port2.direction) {
-            (Input, Input) => return Err(PipeswitchError::DoubleInputPort(port1, port2)),
-            (Output, Output) => return Err(PipeswitchError::DoubleOutputPort(port1, port2)),
+            (Input, Input) => {
+                return Err(PipeswitchError::DoubleInputPort(
+                    Box::new(port1),
+                    Box::new(port2),
+                ))
+            }
+            (Output, Output) => {
+                return Err(PipeswitchError::DoubleOutputPort(
+                    Box::new(port1),
+                    Box::new(port2),
+                ))
+            }
             _ => {}
         };
         // Flip ports if necessary

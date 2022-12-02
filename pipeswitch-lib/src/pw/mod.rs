@@ -35,6 +35,7 @@ pub enum PipewireError {
     Unknown,
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 enum PipewireMessage {
     NewGlobal(u32, ObjectType, Object),
@@ -72,10 +73,10 @@ impl PipewireState {
             PipewireMessage::GlobalRemoved(id) => {
                 if let Some(obj_type) = self.object_types.get(&id) {
                     match obj_type {
-                        ObjectType::Port => self.ports.remove(&id).map(|p| Object::Port(p)),
-                        ObjectType::Node => self.nodes.remove(&id).map(|n| Object::Node(n)),
-                        ObjectType::Link => self.links.remove(&id).map(|l| Object::Link(l)),
-                        ObjectType::Client => self.clients.remove(&id).map(|c| Object::Client(c)),
+                        ObjectType::Port => self.ports.remove(&id).map(Object::Port),
+                        ObjectType::Node => self.nodes.remove(&id).map(Object::Node),
+                        ObjectType::Link => self.links.remove(&id).map(Object::Link),
+                        ObjectType::Client => self.clients.remove(&id).map(Object::Client),
                         _ => None,
                     }
                     .map(|obj| Some(PipeswitchMessage::ObjectRemoved(obj)))
@@ -91,7 +92,7 @@ impl PipewireState {
 
     pub fn ports_by_node(&self, node_id: u32) -> Vec<&Port> {
         let mut vec = Vec::new();
-        for (_, port) in &self.ports {
+        for port in self.ports.values() {
             if port.node_id == node_id {
                 vec.push(port);
             }

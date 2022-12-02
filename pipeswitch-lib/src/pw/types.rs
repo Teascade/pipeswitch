@@ -81,19 +81,18 @@ pub struct Port {
 
 impl Port {
     pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
-        let props = global.props.as_ref().ok_or(PipewireError::MissingProps(
-            global.id,
-            ObjectType::Port,
-            map_props(global.props.as_ref().unwrap()),
-        ))?;
-        let get_prop = |property| props.get(property).map(|v| v.to_string());
-        let get_prop_or = |property| {
-            get_prop(property).ok_or(PipewireError::PropNotFound(
+        let props = global.props.as_ref().ok_or_else(|| {
+            PipewireError::MissingProps(
                 global.id,
                 ObjectType::Port,
-                map_props(props),
-                property,
-            ))
+                map_props(global.props.as_ref().unwrap()),
+            )
+        })?;
+        let get_prop = |property| props.get(property).map(|v| v.to_string());
+        let get_prop_or = |property| {
+            get_prop(property).ok_or_else(|| {
+                PipewireError::PropNotFound(global.id, ObjectType::Port, map_props(props), property)
+            })
         };
         let local_port_id = get_prop_or(*PORT_ID)?.parse()?;
         Ok(Port {
@@ -132,19 +131,18 @@ pub struct Node {
 
 impl Node {
     pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
-        let props = global.props.as_ref().ok_or(PipewireError::MissingProps(
-            global.id,
-            ObjectType::Node,
-            map_props(global.props.as_ref().unwrap()),
-        ))?;
-        let get_prop = |property| props.get(property).map(|v| v.to_string());
-        let get_prop_or = |property| {
-            get_prop(property).ok_or(PipewireError::PropNotFound(
+        let props = global.props.as_ref().ok_or_else(|| {
+            PipewireError::MissingProps(
                 global.id,
                 ObjectType::Node,
-                map_props(props),
-                property,
-            ))
+                map_props(global.props.as_ref().unwrap()),
+            )
+        })?;
+        let get_prop = |property| props.get(property).map(|v| v.to_string());
+        let get_prop_or = |property| {
+            get_prop(property).ok_or_else(|| {
+                PipewireError::PropNotFound(global.id, ObjectType::Node, map_props(props), property)
+            })
         };
 
         Ok(Node {
@@ -181,19 +179,23 @@ pub struct Link {
 impl Link {
     pub fn from_link_info(link_info: &LinkInfo, proxy_id: u32) -> Result<Self, PipewireError> {
         let props = link_info.props();
-        let props = link_info.props().ok_or(PipewireError::MissingProps(
-            link_info.id(),
-            ObjectType::Link,
-            map_props(props.as_ref().unwrap()),
-        ))?;
-        let get_prop = |property| props.get(property).map(|v| v.to_string());
-        let get_prop_or = |property| {
-            get_prop(property).ok_or(PipewireError::PropNotFound(
+        let props = link_info.props().ok_or_else(|| {
+            PipewireError::MissingProps(
                 link_info.id(),
                 ObjectType::Link,
-                map_props(props),
-                property,
-            ))
+                map_props(props.as_ref().unwrap()),
+            )
+        })?;
+        let get_prop = |property| props.get(property).map(|v| v.to_string());
+        let get_prop_or = |property| {
+            get_prop(property).ok_or_else(|| {
+                PipewireError::PropNotFound(
+                    link_info.id(),
+                    ObjectType::Link,
+                    map_props(props),
+                    property,
+                )
+            })
         };
         Ok(Link {
             id: link_info.id(),
@@ -223,19 +225,23 @@ pub struct Client {
 
 impl Client {
     pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
-        let props = global.props.as_ref().ok_or(PipewireError::MissingProps(
-            global.id,
-            ObjectType::Client,
-            map_props(global.props.as_ref().unwrap()),
-        ))?;
-        let get_prop = |property| props.get(property).map(|v| v.to_string());
-        let get_prop_or = |property| {
-            get_prop(property).ok_or(PipewireError::PropNotFound(
+        let props = global.props.as_ref().ok_or_else(|| {
+            PipewireError::MissingProps(
                 global.id,
                 ObjectType::Client,
-                map_props(props),
-                property,
-            ))
+                map_props(global.props.as_ref().unwrap()),
+            )
+        })?;
+        let get_prop = |property| props.get(property).map(|v| v.to_string());
+        let get_prop_or = |property| {
+            get_prop(property).ok_or_else(|| {
+                PipewireError::PropNotFound(
+                    global.id,
+                    ObjectType::Client,
+                    map_props(props),
+                    property,
+                )
+            })
         };
 
         Ok(Client {
@@ -261,19 +267,23 @@ pub struct Factory {
 
 impl Factory {
     pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
-        let props = global.props.as_ref().ok_or(PipewireError::MissingProps(
-            global.id,
-            ObjectType::Factory,
-            map_props(global.props.as_ref().unwrap()),
-        ))?;
-        let get_prop = |property| props.get(property).map(|v| v.to_string());
-        let get_prop_or = |property| {
-            get_prop(property).ok_or(PipewireError::PropNotFound(
+        let props = global.props.as_ref().ok_or_else(|| {
+            PipewireError::MissingProps(
                 global.id,
                 ObjectType::Factory,
-                map_props(props),
-                property,
-            ))
+                map_props(global.props.as_ref().unwrap()),
+            )
+        })?;
+        let get_prop = |property| props.get(property).map(|v| v.to_string());
+        let get_prop_or = |property| {
+            get_prop(property).ok_or_else(|| {
+                PipewireError::PropNotFound(
+                    global.id,
+                    ObjectType::Factory,
+                    map_props(props),
+                    property,
+                )
+            })
         };
 
         Ok(Factory {

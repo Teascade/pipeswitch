@@ -1,6 +1,11 @@
 use dirs::config_dir;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs, path::PathBuf, str::FromStr};
+use std::{
+    collections::HashMap,
+    fs,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 use toml_edit::{table, Document, Item, Value};
 
 use crate::PipeswitchError;
@@ -68,7 +73,7 @@ impl Config {
         Config::from_string(DEFAULT_CONFIG)
     }
 
-    pub fn load_from(path: &PathBuf) -> Result<Option<(Config, Document)>, PipeswitchError> {
+    pub fn load_from(path: &Path) -> Result<Option<(Config, Document)>, PipeswitchError> {
         if !path.try_exists()? {
             Ok(None)
         } else {
@@ -76,8 +81,8 @@ impl Config {
         }
     }
 
-    pub fn write_to(&self, path: &PathBuf, doc: Option<&Document>) -> Result<(), PipeswitchError> {
-        let text = Config::to_string(&self, doc)?;
+    pub fn write_to(&self, path: &Path, doc: Option<&Document>) -> Result<(), PipeswitchError> {
+        let text = Config::to_string(self, doc)?;
         Ok(fs::write(path, text)?)
     }
 
@@ -115,7 +120,7 @@ impl Config {
         document.insert("link", link_item);
         // Clone decor and return
         if let Some(old_document) = old_document {
-            clone_decor(&mut document, &old_document);
+            clone_decor(&mut document, old_document);
         }
         Ok(document.to_string())
     }

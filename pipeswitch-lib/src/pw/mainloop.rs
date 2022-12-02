@@ -20,6 +20,7 @@ use std::{
     },
 };
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum MainloopAction {
     Terminate,
@@ -87,8 +88,8 @@ pub fn mainloop(
     let data = Arc::new(Mutex::new(MainloopData::from(
         mainloop.clone(),
         core.clone(),
-        ps_sender.clone(),
-        sender.clone(),
+        ps_sender,
+        sender,
     )));
 
     let _rec = receiver.attach(&mainloop, {
@@ -114,8 +115,6 @@ pub fn mainloop(
             move |global| handle_new_global(global, &data, &registry, &state)
         })
         .global_remove({
-            let state = state.clone();
-            let data = data.clone();
             move |global_id| {
                 process_message(PipewireMessage::GlobalRemoved(global_id), &data, &state)
             }
@@ -147,12 +146,7 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData, registry:
                 .unwrap();
             let proxy_id = proxy.upcast_ref().id();
 
-            if let Some(info) = data_lock
-                .links
-                .get(&proxy_id)
-                .map(|l| l.link.clone())
-                .flatten()
-            {
+            if let Some(info) = data_lock.links.get(&proxy_id).and_then(|l| l.link.clone()) {
                 data_lock
                     .event_sender
                     .send(MainloopEvents::LinkCreated(Some(info)))
@@ -245,7 +239,7 @@ fn handle_new_global(
 ) {
     match global.type_ {
         ObjectType::Link => {
-            let proxy: pipewire::link::Link = registry.bind(&global).unwrap();
+            let proxy: pipewire::link::Link = registry.bind(global).unwrap();
             let proxy_id = proxy.upcast_ref().id();
             let listener = proxy
                 .add_listener_local()
@@ -279,12 +273,12 @@ fn handle_new_global(
                 },
             );
         }
-        _ => match Object::from_global(&global) {
+        _ => match Object::from_global(global) {
             Ok(Some(obj)) => {
                 process_message(
                     PipewireMessage::NewGlobal(global.id, global.type_.clone(), obj),
-                    &data,
-                    &state,
+                    data,
+                    state,
                 );
             }
             Err(e) => {
