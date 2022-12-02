@@ -28,6 +28,8 @@ pub enum PipewireError {
     InvalidChannel(String),
     #[error("error with core pipewire interface: {0}")]
     PipewireInterfaceError(#[from] pipewire::Error),
+    #[error("tried to delete a global object that was not yet registered: {0}")]
+    GlobalObjectNotRegistered(u32),
     #[cfg(debug_assertions)]
     #[error("unknown error")]
     Unknown,
@@ -76,7 +78,10 @@ impl PipewireState {
                         ObjectType::Client => self.clients.remove(&id).map(|c| Object::Client(c)),
                         _ => None,
                     }
-                    .map(|obj| PipeswitchMessage::ObjectRemoved(obj))
+                    .map(|obj| Some(PipeswitchMessage::ObjectRemoved(obj)))
+                    .unwrap_or(Some(PipeswitchMessage::Error(
+                        PipewireError::GlobalObjectNotRegistered(id),
+                    )))
                 } else {
                     None
                 }
