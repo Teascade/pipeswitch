@@ -7,7 +7,8 @@ linger_links = false
 hotreload_config = true
 
 [log]
-level = "trace"
+# trace / debug / info / warn / error
+level = "info"
 
 # Default link. You may delete me!
 [link.some_default_link]
