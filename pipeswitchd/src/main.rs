@@ -190,6 +190,7 @@ impl PipeswitchDaemon {
                             info!("old rule [{rule_name}] link {link_id} destroyed");
                         }
                     }
+                    self.rules.remove(&rule_name);
                     dirty_rule_names.remove(&rule_name);
                     removed_count += 1;
                 }

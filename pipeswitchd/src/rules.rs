@@ -20,8 +20,8 @@ impl From<(String, LinkConfig)> for LinkRules {
     fn from((name, cfg): (String, LinkConfig)) -> Self {
         LinkRules {
             name: name.clone(),
-            input: Rule::from_node_or_target(name.clone(), cfg.special_empty_ports, &cfg.input),
-            output: Rule::from_node_or_target(name, cfg.special_empty_ports, &cfg.output),
+            input: Rule::from_node_or_target(name.clone(), cfg.special_empty_ports, &cfg.sink),
+            output: Rule::from_node_or_target(name, cfg.special_empty_ports, &cfg.source),
             links: HashSet::new(),
         }
     }

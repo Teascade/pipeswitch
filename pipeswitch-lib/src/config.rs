@@ -37,10 +37,10 @@ pub struct Logging {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct LinkConfig {
-    #[serde(rename = "in")]
-    pub input: NodeOrTarget,
-    #[serde(rename = "out")]
-    pub output: NodeOrTarget,
+    #[serde(alias = "in")]
+    pub sink: NodeOrTarget,
+    #[serde(alias = "out")]
+    pub source: NodeOrTarget,
     /// if false, empty port fields on both sides are never treated specially channel-wise
     #[serde(default = "return_true")]
     pub special_empty_ports: bool,
