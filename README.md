@@ -58,6 +58,7 @@ hotreload_config = true
 
 [log]
 # trace / debug / info / warn / error
+# Not updated with hotreload
 level = "info"
 
 # In and out share the same syntax, both can be expressed as objects or strings.
@@ -80,11 +81,21 @@ special_empty_ports = true
 # A second link for the sake of demonstration
 [link.second_link]
 source = "Hello there!"
-sink = "Some source"
+sink = "Some sink"
 ```
 
 You can preview what inputs/outputs are currently available with `pw-link -o`
 and `pw-link -i` or using Helvum. Note: `pw-link` lists both node-names and port-names.
+
+Another tool you might find useful is `pw-dump`, where the relevant fields are
+`node.name`, `application.name` and `port.name` respectively.
+
+**note**: When naming headers (such as `[link.second_link]`), it is important to
+remember TOML semantics. `link.` at the beginning is important (it has a
+semantic meaning), the part after that simply signifies the name of the link,
+which can contain alphanumeric characters, such as some characters supported by
+TOML like `_`, or `-`. Refer to [the TOML spec](https://toml.io/en/) on which
+characters are good to go.
 
 ## License
 This project is licensed under the [GNU General Public License v3](./LICENSE)
