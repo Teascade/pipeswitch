@@ -43,7 +43,7 @@ impl ConfigListener {
                 let mut inotify =
                     Inotify::init().expect("Error while initializing inotify instance");
                 inotify
-                    .add_watch(&path, WatchMask::MODIFY)
+                    .watches().add(&path, WatchMask::MODIFY)
                     .expect("Failed to add file watch");
                 while running.load(Ordering::Relaxed) {
                     let mut buffer = [0; 1024];
