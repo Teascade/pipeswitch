@@ -10,7 +10,7 @@ use pipewire::{
 
 use super::PipewireError;
 
-pub const VERSION: u32 = 3;
+pub const VERSIONS: [u32; 2] = [3, 4];
 pub const KEY_RULE_NAME: &str = "pipeswitch.rule.name";
 
 type PwIdType = u32;
@@ -27,7 +27,10 @@ impl Direction {
         match input.as_str() {
             "in" => Ok(Direction::Input),
             "out" => Ok(Direction::Output),
-            _ => Err(PipewireError::InvalidDirection(input)),
+            _ => {
+                dbg!(&input.as_str());
+                Err(PipewireError::InvalidDirection(input))
+            }
         }
     }
 }
@@ -37,6 +40,7 @@ pub enum Channel {
     Left,
     Right,
     Mono,
+    Aux(u32),
 }
 
 impl Channel {
@@ -47,6 +51,10 @@ impl Channel {
                 "FL" => Channel::Left,
                 "FR" => Channel::Right,
                 "MONO" => Channel::Mono,
+                i if i.starts_with("AUX") => {
+                    let num = i.split_at("AUX".len()).1.parse()?;
+                    Channel::Aux(num)
+                }
                 _ => Err(PipewireError::InvalidChannel(input))?,
             }))
         } else {
@@ -58,7 +66,7 @@ impl Channel {
         Ok(match input {
             0 => Channel::Left,
             1 => Channel::Right,
-            _ => Err(PipewireError::InvalidChannel(format!("port.id {input}")))?,
+            _ => Channel::Aux(input),
         })
     }
 }
@@ -219,7 +227,6 @@ pub struct Client {
     pub pid: PwIdType,
     pub uid: PwIdType,
     pub gid: PwIdType,
-    pub label: String,
     pub application_name: String,
 }
 
@@ -251,7 +258,6 @@ impl Client {
             pid: get_prop_or(*SEC_PID)?.parse()?,
             uid: get_prop_or(*SEC_UID)?.parse()?,
             gid: get_prop_or(*SEC_GID)?.parse()?,
-            label: get_prop_or(*SEC_LABEL)?,
             application_name: get_prop_or(*APP_NAME)?,
         })
     }
@@ -306,7 +312,7 @@ pub enum Object {
 
 impl Object {
     pub fn from_global(global: &GlobalObject<&DictRef>) -> Result<Option<Self>, PipewireError> {
-        if global.version != VERSION {
+        if !VERSIONS.contains(&global.version) {
             Err(PipewireError::InvalidVersion(global.version))?
         }
         match global.type_ {

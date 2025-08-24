@@ -248,18 +248,8 @@ impl PipeswitchDaemon {
     }
 
     fn port_deleted(&mut self, port: &Port) {
-        use pipeswitch_lib::types::Direction;
-        match &port.direction {
-            Direction::Input => {
-                for rule in self.rules.values_mut() {
-                    rule.input.delete_port(port);
-                }
-            }
-            Direction::Output => {
-                for rule in self.rules.values_mut() {
-                    rule.output.delete_port(port);
-                }
-            }
+        for rule in self.rules.values_mut() {
+            rule.output.delete_port(port);
         }
     }
 
