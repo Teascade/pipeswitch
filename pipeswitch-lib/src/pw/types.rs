@@ -53,7 +53,11 @@ impl Channel {
                 "MONO" => Channel::Mono,
                 i if i.starts_with("AUX") => {
                     let num = i.split_at("AUX".len()).1.parse()?;
-                    Channel::Aux(num)
+                    match num {
+                        0 => Channel::Left,
+                        1 => Channel::Right,
+                        _ => Channel::Aux(num),
+                    }
                 }
                 _ => Err(PipewireError::InvalidChannel(input))?,
             }))

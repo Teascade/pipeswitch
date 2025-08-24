@@ -9,6 +9,7 @@ use pipewire::{
     core::Core,
     link::{self as pwlink},
     main_loop::MainLoop,
+    properties,
     proxy::ProxyT,
     registry::{GlobalObject, Registry},
     spa::utils::{dict::DictRef, result::AsyncSeq},
@@ -134,13 +135,12 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData, registry:
         MainloopAction::Terminate => data.lock().unwrap().mainloop.quit(),
         MainloopAction::CreateLink(factory_name, output, input, rule_name) => {
             let props = pipewire::properties::properties! {
-                *pipewire::keys::LINK_OUTPUT_NODE => output.node_id.to_string(),
                 *pipewire::keys::LINK_OUTPUT_PORT => output.id.to_string(),
-                *pipewire::keys::LINK_INPUT_NODE => input.node_id.to_string(),
                 *pipewire::keys::LINK_INPUT_PORT => input.id.to_string(),
-                "object.linger" => "1",
+                *pipewire::keys::OBJECT_LINGER => "true",
                 types::KEY_RULE_NAME => rule_name
             };
+
             let mut data_lock = data.lock().unwrap();
             let proxy = data_lock
                 .core
