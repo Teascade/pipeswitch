@@ -535,7 +535,7 @@ checksum = "e0a7ae3ac2f1173085d398531c705756c94a4c56843785df85a60c1a0afac116"
 
 [[package]]
 name = "pipeswitch-lib"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "dirs",
  "log",
@@ -547,7 +547,7 @@ dependencies = [
 
 [[package]]
 name = "pipeswitchd"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "inotify",
