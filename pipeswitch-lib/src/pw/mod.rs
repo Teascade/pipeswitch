@@ -30,6 +30,8 @@ pub enum PipewireError {
     PipewireInterfaceError(#[from] pipewire::Error),
     #[error("tried to delete a global object that was not yet registered: {0}")]
     GlobalObjectNotRegistered(u32),
+    #[error("error parsing global: '{0}', received properties: {1:?}")]
+    InvalidGlobal(Box<PipewireError>, Option<HashMap<String, String>>),
     #[cfg(debug_assertions)]
     #[error("unknown error")]
     Unknown,

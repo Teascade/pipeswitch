@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use pipewire::{
     keys::*,
-    link::LinkInfo,
+    link::{LinkInfo, LinkInfoRef},
     registry::GlobalObject,
-    spa::{ForeignDict, ReadableDict},
+    spa::utils::dict::DictRef,
     types::ObjectType,
 };
 
@@ -80,7 +80,7 @@ pub struct Port {
 }
 
 impl Port {
-    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
+    pub fn from_global(global: &GlobalObject<&DictRef>) -> Result<Self, PipewireError> {
         let props = global.props.as_ref().ok_or_else(|| {
             PipewireError::MissingProps(
                 global.id,
@@ -130,7 +130,7 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
+    pub fn from_global(global: &GlobalObject<&DictRef>) -> Result<Self, PipewireError> {
         let props = global.props.as_ref().ok_or_else(|| {
             PipewireError::MissingProps(
                 global.id,
@@ -177,7 +177,7 @@ pub struct Link {
 }
 
 impl Link {
-    pub fn from_link_info(link_info: &LinkInfo, proxy_id: u32) -> Result<Self, PipewireError> {
+    pub fn from_link_info(link_info: &LinkInfoRef, proxy_id: u32) -> Result<Self, PipewireError> {
         let props = link_info.props();
         let props = link_info.props().ok_or_else(|| {
             PipewireError::MissingProps(
@@ -224,7 +224,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
+    pub fn from_global(global: &GlobalObject<&DictRef>) -> Result<Self, PipewireError> {
         let props = global.props.as_ref().ok_or_else(|| {
             PipewireError::MissingProps(
                 global.id,
@@ -266,7 +266,7 @@ pub struct Factory {
 }
 
 impl Factory {
-    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Self, PipewireError> {
+    pub fn from_global(global: &GlobalObject<&DictRef>) -> Result<Self, PipewireError> {
         let props = global.props.as_ref().ok_or_else(|| {
             PipewireError::MissingProps(
                 global.id,
@@ -305,7 +305,7 @@ pub enum Object {
 }
 
 impl Object {
-    pub fn from_global(global: &GlobalObject<ForeignDict>) -> Result<Option<Self>, PipewireError> {
+    pub fn from_global(global: &GlobalObject<&DictRef>) -> Result<Option<Self>, PipewireError> {
         if global.version != VERSION {
             Err(PipewireError::InvalidVersion(global.version))?
         }
@@ -319,7 +319,7 @@ impl Object {
     }
 }
 
-fn map_props(props: &ForeignDict) -> HashMap<String, String> {
+pub(crate) fn map_props(props: &DictRef) -> HashMap<String, String> {
     props
         .iter()
         .map(|(v1, v2)| (v1.into(), v2.into()))

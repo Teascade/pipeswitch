@@ -1,16 +1,18 @@
 use super::PipewireMessage;
 use crate::{
-    types::{self, Object},
+    types::{self, map_props, Object},
     PipeswitchMessage, PipewireError, PipewireState,
 };
 use pipewire::{
     channel::Receiver as PipewireReceiver,
+    context::Context,
+    core::Core,
     link::{self as pwlink},
+    main_loop::MainLoop,
     proxy::ProxyT,
     registry::{GlobalObject, Registry},
-    spa::{AsyncSeq, ForeignDict},
-    types::ObjectType,
-    Context, Core, MainLoop, PW_ID_CORE,
+    spa::utils::{dict::DictRef, result::AsyncSeq},
+    types::ObjectType, // Context, Core, MainLoop, PW_ID_CORE,
 };
 use std::{
     collections::HashMap,
@@ -80,7 +82,7 @@ pub fn mainloop(
     receiver: PipewireReceiver<MainloopAction>,
     state: Arc<Mutex<PipewireState>>,
 ) -> Result<(), PipewireError> {
-    let mainloop = MainLoop::new()?;
+    let mainloop = MainLoop::new(None)?;
     let context = Context::new(&mainloop)?;
     let core = context.connect(None)?;
     let registry = Arc::new(core.get_registry()?);
@@ -92,7 +94,7 @@ pub fn mainloop(
         sender,
     )));
 
-    let _rec = receiver.attach(&mainloop, {
+    let _rec = receiver.attach(&mainloop.loop_(), {
         let data = data.clone();
         let registry = registry.clone();
         // Called when Pipeswitch sends an event
@@ -131,7 +133,7 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData, registry:
     match action {
         MainloopAction::Terminate => data.lock().unwrap().mainloop.quit(),
         MainloopAction::CreateLink(factory_name, output, input, rule_name) => {
-            let props = pipewire::properties! {
+            let props = pipewire::properties::properties! {
                 *pipewire::keys::LINK_OUTPUT_NODE => output.node_id.to_string(),
                 *pipewire::keys::LINK_OUTPUT_PORT => output.id.to_string(),
                 *pipewire::keys::LINK_INPUT_NODE => input.node_id.to_string(),
@@ -142,7 +144,7 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData, registry:
             let mut data_lock = data.lock().unwrap();
             let proxy = data_lock
                 .core
-                .create_object::<pipewire::link::Link, _>(&factory_name, &props)
+                .create_object::<pipewire::link::Link>(&factory_name, &props)
                 .unwrap();
             let proxy_id = proxy.upcast_ref().id();
 
@@ -202,7 +204,7 @@ fn handle_action(action: MainloopAction, data: &ShareableMainloopData, registry:
 /// Called when a round trip is complete from the Core
 fn handle_done(id: u32, seq: AsyncSeq, data: &ShareableMainloopData) {
     let mut data_lock = data.lock().unwrap();
-    if id == PW_ID_CORE {
+    if id == pipewire::core::PW_ID_CORE {
         match data_lock.pending_seq {
             Some(Roundtrip::CreateLink(s, id)) => {
                 if s == seq {
@@ -232,7 +234,7 @@ fn handle_done(id: u32, seq: AsyncSeq, data: &ShareableMainloopData) {
 }
 
 fn handle_new_global(
-    global: &GlobalObject<ForeignDict>,
+    global: &GlobalObject<&DictRef>,
     data: &ShareableMainloopData,
     registry: &Registry,
     state: &Arc<Mutex<PipewireState>>,
@@ -285,6 +287,7 @@ fn handle_new_global(
                 let data_lock = data.lock().unwrap();
                 if let Some(sender) = &data_lock.message_sender {
                     sender.send(PipeswitchMessage::Error(e)).unwrap();
+                    // TODO: Error here!
                 }
             }
             _ => {}
